@@ -141,6 +141,13 @@ io.on('connection', (socket) => {
     // Leave the room
     socket.leave(roomID);
     console.log(`User left room: ${roomID}`);
+
+     // Add rejoin logic here
+  socket.on('rejoinRoom', ({ roomID }) => {
+    // Rejoin the room
+    socket.join(roomID);
+    console.log(`User rejoined room: ${roomID}`);
+  });
   });
 
   // Listen for new messages

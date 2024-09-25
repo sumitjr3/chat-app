@@ -39,9 +39,9 @@ class _UserListScreenState extends State<UserListScreen> {
                 return ListTile(
                   title: Text(users[index]['username']),
                   onTap: () {
-                    print(widget.userId.compareTo(users[index]['_id']) < 0
-                        ? '${widget.userId}-${users[index]['_id']}'
-                        : '${users[index]['_id']}-${widget.userId}');
+                    // print(widget.userId.compareTo(users[index]['_id']) < 0
+                    //     ? '${widget.userId}-${users[index]['_id']}'
+                    //     : '${users[index]['_id']}-${widget.userId}');
                     Navigator.push(
                       context,
                       MaterialPageRoute(

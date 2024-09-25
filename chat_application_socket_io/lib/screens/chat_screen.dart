@@ -52,40 +52,75 @@ class _ChatScreenState extends State<ChatScreen> {
         messages.add({'sender': sender, 'content': content});
       });
     });
+
+    @override
+    void dispose() {
+      // Leave the room but don't disconnect the socket
+      chatService.leaveRoomAndDisconnect();
+      super.dispose();
+    }
   }
 
-  // Fetch previous messages from the server
-  fetchMessages() async {
-    try {
-      var fetchedMessages = await messageService.fetchMessages(
-          widget.senderId, widget.receiverId);
-      setState(() {
-        messages = fetchedMessages; // Load the fetched messages into the list
-        isLoading = false;
-      });
-    } catch (e) {
-      print('Error fetching messages: $e');
-    } finally {
-      setState(() {
-        isLoading = false; // Stop loading once messages are fetched
-      });
+  Future<void> fetchMessages() async {
+    if (mounted) {
+      try {
+        var fetchedMessages = await messageService.fetchMessages(
+            widget.senderId, widget.receiverId);
+
+        setState(() {
+          messages = fetchedMessages; // Load the fetched messages into the list
+          isLoading = false;
+        });
+      } catch (e) {
+        print('Error fetching messages: $e');
+      } finally {
+        if (mounted) {
+          setState(() {
+            isLoading = false; // Stop loading once messages are fetched
+          });
+        }
+      }
     }
   }
 
   // Send a message to the server
+  // void _sendMessage() {
+  //   final message = messageController.text;
+  //   if (message.isEmpty) return; // Prevent sending empty messages
+
+  //   if (chatService.socket.connected) {
+  //     // Send the message to the server, which will then broadcast it back
+  //     chatService.sendMessage(widget.senderId, widget.receiverId, message);
+  //   } else {
+  //     // Handle the case where the socket is not connected
+  //     print('Socket not connected, message not sent');
+  //   }
+
+  //   messageController.clear(); // Clear input field after sending message
+  //   FocusScope.of(context).requestFocus(FocusNode()); // Close keyboard
+  // }
+
   void _sendMessage() {
     final message = messageController.text;
     if (message.isEmpty) return; // Prevent sending empty messages
 
+    // Update UI immediately by adding message to the local message list
+    setState(() {
+      messages.add({
+        'sender': widget.senderId,
+        'content': message,
+      });
+    });
+
+    // Send the message to the server, which will then broadcast it back
     if (chatService.socket.connected) {
-      // Send the message to the server, which will then broadcast it back
       chatService.sendMessage(widget.senderId, widget.receiverId, message);
     } else {
-      // Handle the case where the socket is not connected
       print('Socket not connected, message not sent');
     }
 
-    messageController.clear(); // Clear input field after sending message
+    // Clear input field after sending message
+    messageController.clear();
     FocusScope.of(context).requestFocus(FocusNode()); // Close keyboard
   }
 
@@ -105,7 +140,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         );
 
-        return false;
+        return true;
       },
       child: Scaffold(
         appBar: AppBar(

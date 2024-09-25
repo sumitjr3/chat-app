@@ -1,3 +1,4 @@
+import 'package:chat_application_socket_io/services/message_service.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class ChatService {
@@ -25,15 +26,15 @@ class ChatService {
         onConnect(); // Trigger onConnect callback
       });
 
-      // Attempt reconnection on disconnect
-      socket.onDisconnect((_) {
-        print('Disconnected from WebSocket server');
-        _isConnected = false; // Update the connection status
-        if (onDisconnect != null) {
-          onDisconnect(); // Call onDisconnect if provided
-        }
-        reconnect(); // Attempt to reconnect automatically
-      });
+      // // Attempt reconnection on disconnect
+      // socket.onDisconnect((_) {
+      //   print('Disconnected from WebSocket server');
+      //   _isConnected = false; // Update the connection status
+      //   if (onDisconnect != null) {
+      //     onDisconnect(); // Call onDisconnect if provided
+      //   }
+      //   reconnect(); // Attempt to reconnect automatically
+      // });
 
       socket.on('connect_error', (error) {
         print('Connection error: $error');
@@ -44,6 +45,10 @@ class ChatService {
 
   // Function to attempt reconnection
   void reconnect() {
+    if (isConnected) {
+      socket.disconnect();
+      print('disconnecting');
+    }
     if (!_isConnected) {
       print('Attempting to reconnect...');
       socket.connect(); // Try reconnecting
@@ -98,8 +103,19 @@ class ChatService {
 
     print('Joined room: $roomID');
 
-    // Add error handling for joinRoom
+// Listen for real-time incoming messages
+    socket.on('message', (data) {
+      String sender = data['sender'];
+      String content = data['content'];
+      // Emit the real-time message to the chat screen
+      socket.emit('realTimeMessage', {
+        'sender': sender,
+        'content': content,
+      });
+    });
+
     socket.on('joinRoom_error', (error) {
+      // Handle server-side error related to joining the room
       print('Error joining room: $error');
     });
   }
