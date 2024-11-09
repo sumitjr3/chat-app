@@ -140,7 +140,7 @@ io.on('connection', (socket) => {
 
     // Leave the room
     socket.leave(roomID);
-    console.log(`User left room: ${roomID}`);
+    console.log(`User left room: ${roomID}`); 
 
      // Add rejoin logic here
   socket.on('rejoinRoom', ({ roomID }) => {

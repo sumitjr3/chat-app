@@ -2,7 +2,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class AuthService {
-  final String baseUrl = 'http://172.16.20.37:3000/auth';
+  final String baseUrl = 'http://172.16.20.114:3000/auth';
 
   Future<bool> signup(String username, String email, String password) async {
     final response = await http.post(
@@ -18,7 +18,7 @@ class AuthService {
   static Future<Map<String, dynamic>> login(
       String username, String password) async {
     final response = await http.post(
-      Uri.parse('http://172.16.20.37:3000/auth/login'),
+      Uri.parse('http://172.16.20.114:3000/auth/login'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
@@ -42,7 +42,7 @@ class AuthService {
   static Future<List<dynamic>> fetchUsers() async {
     try {
       final response =
-          await http.get(Uri.parse('http://172.16.20.37:3000/auth/users'));
+          await http.get(Uri.parse('http://172.16.20.114:3000/auth/users'));
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {

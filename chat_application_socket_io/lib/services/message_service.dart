@@ -12,7 +12,7 @@ class MessageService {
           : '$receiverId-$senderId';
 
       // Replace with your actual backend URL and endpoint
-      final url = Uri.parse('http://172.16.20.37:3000/chat/messages/$roomID');
+      final url = Uri.parse('http://172.16.20.114:3000/chat/messages/$roomID');
 
       // Send GET request to the server with a timeout
       final response = await http.get(url).timeout(const Duration(

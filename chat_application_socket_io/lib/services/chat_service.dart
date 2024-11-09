@@ -10,7 +10,7 @@ class ChatService {
     // Check if socket is null or not connected, then initialize
     if (!(_isConnected)) {
       // Establish connection to the WebSocket server
-      socket = IO.io('http://172.16.20.37:3000', <String, dynamic>{
+      socket = IO.io('http://172.16.20.114:3000', <String, dynamic>{
         'transports': ['websocket'],
         'autoConnect': false, // Connect manually
         'reconnection': true, // Enable automatic reconnection
