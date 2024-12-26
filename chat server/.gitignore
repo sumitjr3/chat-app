@@ -1,7 +1,5 @@
 # Ignore node_modules directory
-chat server/node_modules/
+chat server\node_modules\
 
 # Ignore environment files
-chat server/.env
-
-
+chat server\.env
