@@ -105,12 +105,12 @@ class _ChatScreenState extends State<ChatScreen> {
     if (message.isEmpty) return; // Prevent sending empty messages
 
     // Update UI immediately by adding message to the local message list
-    setState(() {
-      messages.add({
-        'sender': widget.senderId,
-        'content': message,
-      });
-    });
+    // setState(() {
+    //   messages.add({
+    //     'sender': widget.senderId,
+    //     'content': message,
+    //   });
+    // });
 
     // Send the message to the server, which will then broadcast it back
     if (chatService.socket.connected) {

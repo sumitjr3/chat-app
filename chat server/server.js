@@ -87,8 +87,8 @@ import { createServer } from 'http';
 import { Server as SocketIO } from 'socket.io';
 import authRoutes from './routes/auth.js';
 import chatRoutes from './routes/chat.js';
-import Message from './models/message.js'; 
-import pkg from 'mongoose'; 
+import Message from './models/message.js';
+import pkg from 'mongoose';
 const { connect } = pkg;
 import dotenv from 'dotenv';
 
@@ -132,7 +132,6 @@ io.on('connection', (socket) => {
 
   // Leave a room
   socket.on('leaveRoom', ({ roomID }) => {
-    
     if (!roomID) {
       console.error('Room ID is missing');
       return;
@@ -140,14 +139,19 @@ io.on('connection', (socket) => {
 
     // Leave the room
     socket.leave(roomID);
-    console.log(`User left room: ${roomID}`); 
+    console.log(`User left room: ${roomID}`);
+  });
 
-     // Add rejoin logic here
+  // Rejoin a room
   socket.on('rejoinRoom', ({ roomID }) => {
+    if (!roomID) {
+      console.error('Room ID is missing');
+      return;
+    }
+
     // Rejoin the room
     socket.join(roomID);
     console.log(`User rejoined room: ${roomID}`);
-  });
   });
 
   // Listen for new messages
@@ -167,6 +171,7 @@ io.on('connection', (socket) => {
 
       // Emit the message to the receiver's room
       io.to(roomID).emit('message', data);
+      console.log(`Message sent to room: ${roomID}`);
     } catch (err) {
       console.error('Error saving message to database:', err);
     }

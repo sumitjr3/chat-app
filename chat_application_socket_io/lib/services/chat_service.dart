@@ -1,4 +1,3 @@
-import 'package:chat_application_socket_io/services/message_service.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class ChatService {
@@ -10,7 +9,7 @@ class ChatService {
     // Check if socket is null or not connected, then initialize
     if (!(_isConnected)) {
       // Establish connection to the WebSocket server
-      socket = IO.io('http://172.16.20.114:3000', <String, dynamic>{
+      socket = IO.io('http://:3000', <String, dynamic>{
         'transports': ['websocket'],
         'autoConnect': false, // Connect manually
         'reconnection': true, // Enable automatic reconnection
@@ -26,15 +25,14 @@ class ChatService {
         onConnect(); // Trigger onConnect callback
       });
 
-      // // Attempt reconnection on disconnect
-      // socket.onDisconnect((_) {
-      //   print('Disconnected from WebSocket server');
-      //   _isConnected = false; // Update the connection status
-      //   if (onDisconnect != null) {
-      //     onDisconnect(); // Call onDisconnect if provided
-      //   }
-      //   reconnect(); // Attempt to reconnect automatically
-      // });
+      socket.onDisconnect((_) {
+        print('Disconnected from WebSocket server');
+        _isConnected = false; // Update the connection status
+        if (onDisconnect != null) {
+          onDisconnect(); // Call onDisconnect if provided
+        }
+        reconnect(); // Attempt to reconnect automatically
+      });
 
       socket.on('connect_error', (error) {
         print('Connection error: $error');
@@ -103,7 +101,6 @@ class ChatService {
 
     print('Joined room: $roomID');
 
-// Listen for real-time incoming messages
     socket.on('message', (data) {
       String sender = data['sender'];
       String content = data['content'];
