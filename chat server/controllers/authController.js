@@ -4,7 +4,7 @@ import User from '../models/user.js';
 
 // Define the signup function
 export const signup = async (req, res) => {
-  const { username, email, password } = req.body; // Ensure email is included
+  const { username, password } = req.body; // Ensure email is included
 
   try {
     // Check for existing user by username
