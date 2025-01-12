@@ -9,7 +9,7 @@ class ChatService {
     // Check if socket is null or not connected, then initialize
     if (!(_isConnected)) {
       // Establish connection to the WebSocket server
-      socket = IO.io('http://192.168.0.108:3000', <String, dynamic>{
+      socket = IO.io('https://chat-app-0mkv.onrender.com', <String, dynamic>{
         'transports': ['websocket'],
         'autoConnect': false, // Connect manually
         'reconnection': true, // Enable automatic reconnection

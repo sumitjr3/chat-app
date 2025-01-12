@@ -12,7 +12,8 @@ class MessageService {
           : '$receiverId-$senderId';
 
       // Replace with your actual backend URL and endpoint
-      final url = Uri.parse('http://192.168.0.108:3000/chat/messages/$roomID');
+      final url =
+          Uri.parse('https://chat-app-0mkv.onrender.com/chat/messages/$roomID');
 
       // Send GET request to the server with a timeout
       final response = await http.get(url).timeout(const Duration(

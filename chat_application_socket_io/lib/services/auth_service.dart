@@ -2,7 +2,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class AuthService {
-  final String baseUrl = 'http://192.168.0.108:3000/auth';
+  final String baseUrl = 'https://chat-app-0mkv.onrender.com/auth';
 
   Future<bool> signup(String username, String email, String password) async {
     final response = await http.post(
@@ -18,7 +18,7 @@ class AuthService {
   static Future<Map<String, dynamic>> login(
       String username, String password) async {
     final response = await http.post(
-      Uri.parse('http://192.168.0.108:3000/auth/login'),
+      Uri.parse('https://chat-app-0mkv.onrender.com/auth/login'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
@@ -41,8 +41,8 @@ class AuthService {
 
   static Future<List<dynamic>> fetchUsers() async {
     try {
-      final response =
-          await http.get(Uri.parse('http://192.168.0.108:3000/auth/users'));
+      final response = await http
+          .get(Uri.parse('https://chat-app-0mkv.onrender.com/auth/users'));
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {
