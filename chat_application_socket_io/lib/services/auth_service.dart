@@ -4,15 +4,28 @@ import 'dart:convert';
 class AuthService {
   final String baseUrl = 'https://chat-app-0mkv.onrender.com/auth';
 
-  Future<bool> signup(String username, String email, String password) async {
+  static Future<Map<String, dynamic>> signup(
+      String username, String password) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/signup'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(
-          {'username': username, 'email': email, 'password': password}),
+      Uri.parse('https://chat-app-0mkv.onrender.com/auth/signup'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        'username': username,
+        'password': password,
+      }),
     );
 
-    return response.statusCode == 201;
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return {
+        'token': data['token'],
+        'userId': data['userId'],
+      };
+    } else {
+      throw Exception('Failed to log in');
+    }
   }
 
   static Future<Map<String, dynamic>> login(
