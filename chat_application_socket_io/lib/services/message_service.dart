@@ -1,13 +1,13 @@
+import 'package:chat_application_socket_io/features/chat/model/message_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class MessageService {
-  // Function to fetch messages between sender and receiver
-  Future<List<dynamic>> fetchMessages(
-      String senderId, String receiverId) async {
+  Future<List<Message>> fetchMessages(
+      String? senderId, String? receiverId) async {
     try {
       // Generate roomID based on sender and receiver IDs
-      final roomID = senderId.compareTo(receiverId) < 0
+      final roomID = senderId!.compareTo(receiverId!) < 0
           ? '$senderId-$receiverId'
           : '$receiverId-$senderId';
 
@@ -16,13 +16,14 @@ class MessageService {
           Uri.parse('https://chat-app-0mkv.onrender.com/chat/messages/$roomID');
 
       // Send GET request to the server with a timeout
-      final response = await http.get(url).timeout(const Duration(
-          seconds: 10)); // Add timeout to prevent indefinite waiting
+      final response = await http.get(url).timeout(const Duration(seconds: 10));
 
       // Check if the request was successful
       if (response.statusCode == 200) {
         // Parse and return the response body as a list of messages
-        return json.decode(response.body);
+        print(response.body.toString());
+        List<dynamic> data = json.decode(response.body);
+        return data.map((item) => Message.fromJson(item)).toList();
       } else if (response.statusCode == 404) {
         // Handle case where no messages are found
         throw Exception('Messages not found for room: $roomID');

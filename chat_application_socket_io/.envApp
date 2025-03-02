@@ -1,0 +1,2 @@
+PRODUCTION_URL=https://chat-app-0mkv.onrender.com
+DEVELOPMENT_URL=http://192.168.1.17:5000
