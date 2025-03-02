@@ -1,0 +1,2 @@
+E:/projects/chat-app/chat_application_socket_io/android/app/.cxx/Debug/r2d4k4w6/armeabi-v7a/CMakeFiles/edit_cache.dir
+E:/projects/chat-app/chat_application_socket_io/android/app/.cxx/Debug/r2d4k4w6/armeabi-v7a/CMakeFiles/rebuild_cache.dir

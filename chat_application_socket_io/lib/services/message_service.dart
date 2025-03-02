@@ -1,7 +1,10 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class MessageService {
+    static var _baseUrl = dotenv.env['DEVELOPMENT_URL'];
+
   // Function to fetch messages between sender and receiver
   Future<List<dynamic>> fetchMessages(
       String senderId, String receiverId) async {
@@ -13,7 +16,7 @@ class MessageService {
 
       // Replace with your actual backend URL and endpoint
       final url =
-          Uri.parse('https://chat-app-0mkv.onrender.com/chat/messages/$roomID');
+          Uri.parse('$_baseUrl/chat/messages/$roomID');
 
       // Send GET request to the server with a timeout
       final response = await http.get(url).timeout(const Duration(

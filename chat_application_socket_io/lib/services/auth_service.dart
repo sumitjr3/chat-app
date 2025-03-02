@@ -1,13 +1,14 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AuthService {
-  final String baseUrl = 'https://chat-app-0mkv.onrender.com/auth';
+  static var _baseUrl = dotenv.env['DEVELOPMENT_URL'];
 
   static Future<Map<String, dynamic>> signup(
       String username, String password) async {
     final response = await http.post(
-      Uri.parse('https://chat-app-0mkv.onrender.com/auth/signup'),
+      Uri.parse('$_baseUrl/auth/signup'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
@@ -31,7 +32,7 @@ class AuthService {
   static Future<Map<String, dynamic>> login(
       String username, String password) async {
     final response = await http.post(
-      Uri.parse('https://chat-app-0mkv.onrender.com/auth/login'),
+      Uri.parse('$_baseUrl/auth/login'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
@@ -55,7 +56,7 @@ class AuthService {
   static Future<List<dynamic>> fetchUsers() async {
     try {
       final response = await http
-          .get(Uri.parse('https://chat-app-0mkv.onrender.com/auth/users'));
+          .get(Uri.parse('$_baseUrl/auth/users'));
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {

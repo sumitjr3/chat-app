@@ -1,0 +1,1 @@
+E:\projects\chat-app\chat_application_socket_io\build\app\intermediates\cxx\Debug\r2d4k4w6\obj\arm64-v8a

@@ -27,6 +27,7 @@ class LoginView extends StatelessWidget {
                 obscureText: true,
               ),
               if (authController.errorMessage.value.isNotEmpty)
+                
                 Text(
                   authController.errorMessage.value,
                   style: TextStyle(color: Colors.red),
