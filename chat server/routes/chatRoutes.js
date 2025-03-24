@@ -1,5 +1,4 @@
 // routes/chat.js
-
 import express from 'express';
 import Message from '../models/message.js';
 
@@ -16,7 +15,7 @@ router.get('/messages/:roomID', async (req, res) => {
   try {
     const { roomID } = req.params;
     const messages = await Message.find({ roomID });
-    res.json(messages);
+    res.status(200).json({status:"SUCCESS",messages});
   } catch (error) {
     console.error('Error fetching messages:', error);
     res.status(500).send('Server error');

@@ -1,79 +1,139 @@
-import { Server as SocketIO } from 'socket.io';
+import { Server as SocketIO} from 'socket.io';
 import Message from './models/message.js';
+import Room from './models/room.js';
 
-export const initSocket = (server) => {
+// Use a Map for efficient user management
+let onlineUsers = new Map();
+
+const initializeSocket = (server) => {
   const io = new SocketIO(server, {
+    transports: ['websocket', 'polling'],
     cors: {
-      origin: '*', // Adjust this to your frontend URL in production
+      origin: '*',
       methods: ['GET', 'POST'],
-    }
+    },
   });
 
   io.on('connection', (socket) => {
     console.log('New client connected:', socket.id);
 
-    // Join a room
-    socket.on('joinRoom', ({ roomID }) => {
-      if (!roomID) {
-        console.error('Room ID is missing');
+    socket.on('joinRoom', async ({ roomID, userId }) => {
+      if (!roomID || !userId) {
+        console.error('Room ID or User ID is missing');
         return;
       }
 
-      // Join the room
-      socket.join(roomID);
-      console.log(`User joined room: ${roomID}`);
+      try {
+        const [user1Id, user2Id] = roomID.split('-');
+
+        const istTime = new Date().toLocaleString('en-US', {
+          timeZone: 'Asia/Kolkata',
+          hour12: false,
+          iso: 'extended',
+        });
+        const istTimeFormatted = new Date(istTime).toISOString();
+
+        // Use findOneAndUpdate with upsert to simplify room creation/update logic
+        const room = await Room.findOneAndUpdate(
+          { roomID },
+          { $addToSet: { users: [user1Id, user2Id] }, last_updated: istTimeFormatted},
+          { upsert: true, new: true }
+        );
+
+        socket.join(roomID);
+        onlineUsers.set(userId, socket.id);
+        io.to(roomID).emit('total_clients', onlineUsers.size);
+        console.log(`User ${userId} joined room: ${roomID}`);
+      } catch (err) {
+        console.error('Error joining room:', err);
+        socket.emit('error', { message: 'Failed to join room. Please try again.' });
+      }
     });
 
-    // Leave a room
-    socket.on('leaveRoom', ({ roomID }) => {
-      if (!roomID) {
-        console.error('Room ID is missing');
+    socket.on('leaveRoom', ({ roomID, userId }) => {
+      if (!roomID || !userId) {
+        console.error('Room ID or User ID is missing');
         return;
       }
-
-      // Leave the room
       socket.leave(roomID);
-      console.log(`User left room: ${roomID}`);
+      onlineUsers.delete(userId);
+      io.to(roomID).emit('total_clients', onlineUsers.size);
+      console.log(`User ${userId} left room: ${roomID}`);
     });
 
-    // Rejoin a room
     socket.on('rejoinRoom', ({ roomID }) => {
       if (!roomID) {
         console.error('Room ID is missing');
         return;
       }
-
-      // Rejoin the room
       socket.join(roomID);
       console.log(`User rejoined room: ${roomID}`);
     });
 
-    // Listen for new messages
     socket.on('sendMessage', async (data) => {
       const { sender, receiver, content, roomID } = data;
-
-      // Validate message data
       if (!roomID || !sender || !receiver || !content) {
         console.error('Incomplete message data:', data);
         return;
       }
-
       try {
-        // Save the message in the database
-        const message = new Message({ sender, receiver, content, roomID });
+        
+        const istTime = new Date().toLocaleString('en-US', {
+          timeZone: 'Asia/Kolkata',
+          hour12: false,
+          iso: 'extended',
+        });
+
+        const istTimeFormatted = new Date(istTime).toISOString();
+        
+        const message = new Message({
+          sender,
+          receiver,
+          content,
+          roomID,
+          createdAt: new Date(istTimeFormatted),
+        });
         await message.save();
 
-        // Emit the message to the receiver's room
-        io.to(roomID).emit('message', data);
-        console.log(`Message sent to room: ${roomID}`);
+        // Update the room's last_updated and last_message fields
+
+        await Room.findOneAndUpdate(
+          { roomID },
+          { last_updated: istTimeFormatted, last_message: content }
+        );
+
+        io.to(roomID).emit('message', { ...data, timestamp: istTime });
       } catch (err) {
         console.error('Error saving message to database:', err);
+        socket.emit('error', { message: 'Failed to send message. Please try again.' });
       }
     });
 
-    // Handle disconnect
+    socket.on('typing', ({ roomID, userId }) => {
+      if (!roomID || !userId) {
+        console.error('Incomplete typing data:', { roomID, userId });
+        return;
+      }
+      socket.to(roomID).emit('typing', userId);
+    });
+
+    socket.on('stop_typing', ({ roomID, userId }) => {
+      if (!roomID || !userId) {
+        console.error('Incomplete stop_typing data:', { roomID, userId });
+        return;
+      }
+      socket.to(roomID).emit('stop_typing', userId);
+    });
+
     socket.on('disconnect', () => {
+      const userId = Array.from(onlineUsers.keys()).find(key => onlineUsers.get(key) === socket.id);
+      if (userId) {
+        onlineUsers.delete(userId);
+        io.emit('user_offline', userId);
+      }
       console.log('Client disconnected:', socket.id);
     });
   });
 };
+
+export default initializeSocket;

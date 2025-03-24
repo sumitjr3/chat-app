@@ -27,7 +27,6 @@ class LoginView extends StatelessWidget {
                 obscureText: true,
               ),
               if (authController.errorMessage.value.isNotEmpty)
-                
                 Text(
                   authController.errorMessage.value,
                   style: TextStyle(color: Colors.red),
@@ -42,7 +41,7 @@ class LoginView extends StatelessWidget {
                         );
                       },
                 child: authController.isLoading.value
-                    ? CircularProgressIndicator(
+                    ? const CircularProgressIndicator(
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       )
                     : Text('Login'),
@@ -51,7 +50,7 @@ class LoginView extends StatelessWidget {
                 onPressed: () {
                   Get.off(() => SignupView());
                 },
-                child: Text(
+                child: const Text(
                   'Signup',
                   style: TextStyle(
                     color: Colors.blue,

@@ -1,4 +1,5 @@
-const mongoose = require('mongoose');
+// models/room.js
+import mongoose from 'mongoose';
 
 const roomSchema = new mongoose.Schema({
   users: [{
@@ -11,6 +12,16 @@ const roomSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  last_updated: {
+    type: Date,
+    default: Date.now,
+  },
+  last_message: {
+    type: String,
+    default: '',
+  },
 });
 
-module.exports = mongoose.model('Room', roomSchema);
+const Room = mongoose.model('Room', roomSchema);
+
+export default Room;
