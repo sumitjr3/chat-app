@@ -48,7 +48,7 @@ export const findUser = async (req, res) => {
 
 export const getChatList = async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
-    const userId = req.body; // Extract userId from body
+    const userId = req.body.userId; // Extract userId from body
 
     console.log('Fetching user rooms for...', userId);
     try {
