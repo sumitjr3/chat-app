@@ -1,4 +1,6 @@
+import 'package:chat_application_socket_io/features/chat%20list/view/chat_list_view.dart';
 import 'package:chat_application_socket_io/features/login/view/login_view.dart';
+import 'package:chat_application_socket_io/features/signup/view/signup_view.dart';
 import 'package:chat_application_socket_io/features/splash/view/splash_view.dart';
 import 'package:get/get.dart';
 
@@ -15,6 +17,14 @@ class AppPages {
     GetPage(
       name: '/login',
       page: () => LoginView(),
+    ),
+    GetPage(
+      name: '/home',
+      page: () => ChatListView(),
+    ),
+    GetPage(
+      name: '/signup',
+      page: () => SignupView(),
     ),
   ];
 }

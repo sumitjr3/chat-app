@@ -79,6 +79,7 @@ export const login = async (req, res) => {
       data:{ userId: user._id, username: user.username,
       email: user.email, firstName: user.firstName,
        lastName: user.lastName, gender: user.gender , token: token}});
+    console.log('User logged in successfully:', user.username);
   } catch (error) {
     console.error('Login failed:', error.message);
     res.status(500).json({ error: 'Login failed' });

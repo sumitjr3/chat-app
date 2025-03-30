@@ -15,7 +15,7 @@ class ChatScreen extends StatelessWidget {
           chatController.chatService.leaveRoomAndDisconnect();
         }
 
-        Get.off(ChatListView(userId: Get.arguments['senderId']));
+        // Get.off(ChatListView(userId: Get.arguments['senderId']));
         return true;
       },
       child: Scaffold(
@@ -27,7 +27,7 @@ class ChatScreen extends StatelessWidget {
                 chatController.chatService.leaveRoomAndDisconnect();
               }
 
-              Get.off(ChatListView(userId: Get.arguments['senderId']));
+              // Get.off(ChatListView(userId: Get.arguments['senderId']));
             },
             icon: Icon(Icons.arrow_back),
           ),

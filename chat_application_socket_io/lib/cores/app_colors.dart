@@ -8,13 +8,14 @@ class AppColors {
   static const Color orange = Color(0xFFF7650A);
 
   // Background colors
-  static const Color background = Color(0xFFDADADA);
+  static const Color background = Color.fromARGB(255, 226, 226, 226);
   static const Color backgroundDark = Color(0xFF212121);
-  static const Color surfaceColor = Color(0xFFF5F5F5);
+  static const Color surfaceColor = Color.fromARGB(255, 240, 237, 237);
 
   // Text colors
   static const Color textPrimary = Color(0xFF212121);
-  static const Color textSecondary = Color(0xFF757575);
+  static const Color textSecondary = Color.fromARGB(255, 139, 139, 139);
+  static const Color textTernary = Color.fromARGB(255, 85, 85, 85);
 
   // Message bubbles
   static const Color sentMessage = Color(0xFFE3F2FD);

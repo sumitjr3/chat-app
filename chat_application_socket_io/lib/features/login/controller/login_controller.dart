@@ -1,6 +1,7 @@
 import 'package:chat_application_socket_io/features/chat%20list/view/chat_list_view.dart';
-import 'package:chat_application_socket_io/services/auth_service.dart';
+import 'package:chat_application_socket_io/services/api_services.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginController extends GetxController {
   var isLoading = false.obs;
@@ -11,15 +12,24 @@ class LoginController extends GetxController {
     errorMessage.value = '';
 
     try {
-      final result = await AuthService.login(username, password);
+      final result = await apiService.login(username, password);
       String token = result['token'];
       String userId = result['userId'];
+      String userName = result['username'];
+      String email = result['email'];
+      String firstname = result['firstname'];
+      String lastName = result['lastname'];
+      String gender = result['gender'];
 
-      // Store the token and userId if needed
-      // For example, you can use GetStorage or any other storage solution
-
-      // Navigate to the User List screen, passing the user ID
-      Get.off(() => ChatListView(userId: userId));
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('token', token);
+      await prefs.setString('userId', userId);
+      await prefs.setString('username', userName);
+      await prefs.setString('email', email);
+      await prefs.setString('firstname', firstname);
+      await prefs.setString('lastname', lastName);
+      await prefs.setString('gender', gender);
+      await prefs.setString('loggedIn', 'true');
     } catch (e) {
       errorMessage.value = e.toString();
     } finally {

@@ -1,5 +1,5 @@
-import 'package:chat_application_socket_io/services/auth_service.dart';
 import 'package:get/get.dart';
+import '../../../services/api_services.dart';
 
 class ChatListController extends GetxController {
   var isLoading = true.obs;
@@ -14,7 +14,7 @@ class ChatListController extends GetxController {
 
   Future<void> fetchUsers() async {
     try {
-      var fetchedUsers = await AuthService.fetchUsers();
+      var fetchedUsers = await apiService.fetchUsers();
       users.assignAll(fetchedUsers);
     } catch (e) {
       errorMessage.value = e.toString();
