@@ -12,7 +12,7 @@ class LoginController extends GetxController {
     errorMessage.value = '';
 
     try {
-      final result = await apiService.login(username, password);
+      final result = await ApiServices.login(username, password);
       String token = result['token'];
       String userId = result['userId'];
       String userName = result['username'];

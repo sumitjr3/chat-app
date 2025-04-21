@@ -454,7 +454,7 @@ class SignupView extends StatelessWidget {
                             style: TextStyle(
                                 fontSize: screenHeight * 0.018,
                                 color: AppColors.textSecondary)),
-                        items: ['Male', 'Female'].map((String value) {
+                        items: ['male', 'female'].map((String value) {
                           return DropdownMenuItem<String>(
                             value: value,
                             child: Text(

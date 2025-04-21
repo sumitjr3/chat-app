@@ -1,6 +1,6 @@
 name: chat_application_socket_io
 description: "A new Flutter project."
-publish_to: 'none'
+publish_to: "none"
 version: 0.1.0
 
 environment:
@@ -11,8 +11,11 @@ dependencies:
     sdk: flutter
   flutter_svg: ^2.0.17
   http: ^1.2.2
+  intl: ^0.20.2
   shared_preferences: ^2.5.2
+  shimmer: ^3.0.0
   socket_io_client: ^2.0.3+1
+  uuid: ^4.5.1
 
 dev_dependencies:
   flutter_test:
@@ -21,10 +24,9 @@ dev_dependencies:
   get: ^4.6.6
   flutter_dotenv: ^5.2.1
 
-
-
 flutter:
   uses-material-design: true
   assets:
     - .envApp
     - assets/svg/
+    - assets/png/

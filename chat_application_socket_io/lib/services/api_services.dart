@@ -1,6 +1,7 @@
 import 'dart:io';
-
 import 'package:chat_application_socket_io/cores/app_colors.dart';
+import 'package:chat_application_socket_io/features/chat%20list/model/chat_list_model.dart';
+import 'package:chat_application_socket_io/models/user_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
@@ -8,7 +9,7 @@ import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 
-class apiService {
+class ApiServices {
   static var _baseUrl = dotenv.env['DEVELOPMENT_URL'];
 
   static Future<void> showExitDialog(
@@ -216,17 +217,108 @@ class apiService {
     }
   }
 
-  static Future<List<dynamic>> fetchUsers() async {
+  Future<Map<String, dynamic>> getChatList(
+      String? receiverId, String? token) async {
     try {
-      final response = await http.get(Uri.parse('$_baseUrl/auth/users'));
+      final response = await http.post(
+        Uri.parse('$_baseUrl/user/get-chat-list'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          "userId": receiverId,
+        }),
+      );
+
+      final responseJson = jsonDecode(response.body);
+
       if (response.statusCode == 200) {
-        return json.decode(response.body);
+        // final List<dynamic> responseJsonContract =
+        //     jsonDecode(response.body)['data'];
+        // return responseJsonContract
+        //     .map((json) => ChatListModel.fromJson(json))
+        //     .toList();
+        return responseJson;
       } else {
-        throw Exception('Failed to fetch users');
+        print(responseJson.toString());
+        return {};
       }
-    } catch (error) {
-      print('Error fetching users: $error');
-      return [];
+    } catch (e) {
+      // showErrorDialog(context, '$e error occurred.');
+      print('$e error occurred.');
+      return {};
+    }
+  }
+
+  //search user api
+  Future<Map<String, dynamic>> searchUser(
+      String? receiverName, String? token) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/user/find-particular-user'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          "username": receiverName,
+        }),
+      );
+
+      final responseJson = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        if (responseJson['status'] == 'SUCCESS') {
+          return responseJson;
+        } else {
+          return {'data': null};
+        }
+      } else {
+        print(responseJson.toString());
+        return {};
+      }
+    } catch (e) {
+      // showErrorDialog(context, '$e error occurred.');
+      print('$e error occurred.');
+      return {};
+    }
+  }
+
+  //fetch message using room-id
+  Future<Map<String, dynamic>> fetchMessages(
+      String senderId, String receiverId, String? token) async {
+    try {
+      // Generate roomID based on sender and receiver IDs
+      final roomID = senderId.compareTo(receiverId) < 0
+          ? '$senderId-$receiverId'
+          : '$receiverId-$senderId';
+      final response = await http.get(
+        Uri.parse('$_baseUrl/chat/messages/$roomID'),
+        // headers: {
+        //   'Authorization': 'Bearer $token',
+        //   'Content-Type': 'application/json',
+        // },
+      );
+
+      final responseJson = jsonDecode(response.body);
+      print('-----------------------> api hitten');
+
+      if (response.statusCode == 200) {
+        if (responseJson['status'] == 'SUCCESS') {
+          print('----------------------------------------status true');
+          return responseJson;
+        } else {
+          return {'messages': null};
+        }
+      } else {
+        print(responseJson.toString());
+        return {};
+      }
+    } catch (e) {
+      // showErrorDialog(context, '$e error occurred.');
+      print('$e error occurred.');
+      return {};
     }
   }
 }

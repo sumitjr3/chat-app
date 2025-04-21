@@ -1,17 +1,19 @@
-import 'package:chat_application_socket_io/features/chat%20list/model/chat_list_model.dart';
+import 'package:chat_application_socket_io/features/search/models/searchUserModel.dart';
+import 'package:chat_application_socket_io/services/api_services.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../services/api_services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class ChatListController extends GetxController {
-  var isLoading = true.obs;
+class SearchControllers extends GetxController {
+  var isLoading = false.obs;
   var errorMessage = ''.obs;
   var userId = ''.obs;
   var userName = ''.obs;
   var userEmail = ''.obs;
   var userImage = ''.obs;
   var userToken = ''.obs;
-  var chatList = <ChatListModel>[].obs;
+  var searchValue = ''.obs;
+  var userList = <Searchusermodel>[].obs;
   final ApiServices _apiServices = ApiServices();
 
   @override
@@ -26,27 +28,23 @@ class ChatListController extends GetxController {
     userName.value = prefs.getString('username') ?? '';
     userEmail.value = prefs.getString('email') ?? '';
     userToken.value = prefs.getString('token') ?? '';
-    if (userId.value.isNotEmpty && userToken.value.isNotEmpty) {
-      getChatList();
-    }
   }
 
-  Future<void> getChatList() async {
+  Future<void> getSearchUser() async {
     try {
-      isLoading(true);
+      isLoading.value = true;
       final response =
-          await _apiServices.getChatList(userId.value, userToken.value);
+          await _apiServices.searchUser(searchValue.value, userToken.value);
 
-      if (response['length'] > 0) {
-        chatList.value = List<Map<String, dynamic>>.from(response['data'])
-            .map((json) => ChatListModel.fromJson(json))
-            .toList();
+      if (response['data'] != null) {
+        userList.clear();
+        final user = Searchusermodel.fromJson(response['data']);
+        userList.add(user);
       } else {
-        chatList.value = [];
+        Get.snackbar('Not a user', 'The username you typed isn\'t valid');
       }
     } catch (e) {
-      errorMessage('Error: $e');
-      chatList.value = [];
+      Get.snackbar('Oops!!!', 'something went wrong');
     } finally {
       isLoading.value = false;
     }

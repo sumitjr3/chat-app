@@ -8,7 +8,7 @@ class AppColors {
   static const Color orange = Color(0xFFF7650A);
 
   // Background colors
-  static const Color background = Color.fromARGB(255, 226, 226, 226);
+  static const Color background = Color(0xffefe6e0);
   static const Color backgroundDark = Color(0xFF212121);
   static const Color surfaceColor = Color.fromARGB(255, 240, 237, 237);
 

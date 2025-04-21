@@ -1,5 +1,7 @@
 import 'package:chat_application_socket_io/features/chat%20list/view/chat_list_view.dart';
+import 'package:chat_application_socket_io/features/chat/view/chat_view.dart';
 import 'package:chat_application_socket_io/features/login/view/login_view.dart';
+import 'package:chat_application_socket_io/features/search/view/search_view.dart';
 import 'package:chat_application_socket_io/features/signup/view/signup_view.dart';
 import 'package:chat_application_socket_io/features/splash/view/splash_view.dart';
 import 'package:get/get.dart';
@@ -25,6 +27,14 @@ class AppPages {
     GetPage(
       name: '/signup',
       page: () => SignupView(),
+    ),
+    GetPage(
+      name: '/searchView',
+      page: () => SearchViewClass(),
+    ),
+    GetPage(
+      name: '/chatScreen',
+      page: () => ChatScreen(),
     ),
   ];
 }

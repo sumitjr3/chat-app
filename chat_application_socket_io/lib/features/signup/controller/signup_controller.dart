@@ -12,7 +12,7 @@ class SignupController extends GetxController {
     errorMessage.value = '';
 
     try {
-      final result = await apiService.signup(
+      final result = await ApiServices.signup(
           Username, Password, Email, FirstName, LastName, Gender);
       String token = result['token'];
       String userId = result['userId'];
