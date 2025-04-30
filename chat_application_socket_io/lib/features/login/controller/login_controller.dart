@@ -6,6 +6,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 class LoginController extends GetxController {
   var isLoading = false.obs;
   var errorMessage = ''.obs;
+  var token = ''.obs;
+  var userId = ''.obs;
+  var userName = ''.obs;
+  var userEmail = ''.obs;
+  var firstname = ''.obs;
+  var lastname = ''.obs;
+  var gender = ''.obs;
 
   Future<void> login(String username, String password) async {
     isLoading.value = true;
@@ -13,23 +20,24 @@ class LoginController extends GetxController {
 
     try {
       final result = await ApiServices.login(username, password);
-      String token = result['token'];
-      String userId = result['userId'];
-      String userName = result['username'];
-      String email = result['email'];
-      String firstname = result['firstname'];
-      String lastName = result['lastname'];
-      String gender = result['gender'];
+      token.value = result['token'];
+      userId.value = result['userId'];
+      userName.value = result['username'];
+      userEmail.value = result['email'];
+      firstname.value = result['firstname'];
+      lastname.value = result['lastname'];
+      gender.value = result['gender'];
 
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', token);
-      await prefs.setString('userId', userId);
-      await prefs.setString('username', userName);
-      await prefs.setString('email', email);
-      await prefs.setString('firstname', firstname);
-      await prefs.setString('lastname', lastName);
-      await prefs.setString('gender', gender);
+      await prefs.setString('token', token.value);
+      await prefs.setString('userId', userId.value);
+      await prefs.setString('username', userName.value);
+      await prefs.setString('email', userEmail.value);
+      await prefs.setString('firstname', firstname.value);
+      await prefs.setString('lastname', lastname.value);
+      await prefs.setString('gender', gender.value);
       await prefs.setString('loggedIn', 'true');
+      Get.offAllNamed('/home');
     } catch (e) {
       errorMessage.value = e.toString();
     } finally {

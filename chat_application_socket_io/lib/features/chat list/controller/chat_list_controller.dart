@@ -33,7 +33,7 @@ class ChatListController extends GetxController {
 
   Future<void> getChatList() async {
     try {
-      isLoading(true);
+      isLoading.value = true;
       final response =
           await _apiServices.getChatList(userId.value, userToken.value);
 

@@ -90,7 +90,7 @@ class ChatScreen extends StatelessWidget {
                             child: SvgPicture.asset(
                               height: screenHeight * 0.06,
                               width: screenHeight * 0.06,
-                              getSvgPath(controller.receiverGender.value),
+                              controller.receiverAvatar.value,
                               fit: BoxFit.fill,
                             ),
                           ),

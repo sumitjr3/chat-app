@@ -13,6 +13,7 @@ class ChatController extends GetxController {
   var myId = ''.obs;
   var receiverEmail = ''.obs;
   var receiverGender = ''.obs;
+  var receiverAvatar = ''.obs;
   var count = 0.obs;
   var token = ''.obs;
   var messages = <Message>[].obs;
@@ -61,6 +62,7 @@ class ChatController extends GetxController {
       receiverEmail.value = prefs.getString('receiver_mail') ?? '';
       receiverId.value = prefs.getString('receiver_id') ?? '';
       receiverGender.value = prefs.getString('receiver_gender') ?? '';
+      receiverAvatar.value = prefs.getString('receiver_avatar') ?? '';
       myId.value = prefs.getString('userId') ?? '';
       token.value = prefs.getString('token') ?? '';
 

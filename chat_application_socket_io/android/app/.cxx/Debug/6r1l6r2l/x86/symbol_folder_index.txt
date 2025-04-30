@@ -1,0 +1,1 @@
+C:\projects\chat app\chat_application_socket_io\build\app\intermediates\cxx\Debug\6r1l6r2l\obj\x86

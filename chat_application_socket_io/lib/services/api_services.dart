@@ -109,8 +109,14 @@ class ApiServices {
     );
   }
 
-  static Future<Map<String, dynamic>> signup(String username, String password,
-      String email, String firstName, String lastName, String gender) async {
+  static Future<Map<String, dynamic>> signup(
+      String username,
+      String password,
+      String email,
+      String firstName,
+      String lastName,
+      String gender,
+      String avatar) async {
     final response = await http.post(
       Uri.parse('$_baseUrl/auth/signup'),
       headers: <String, String>{
@@ -122,13 +128,13 @@ class ApiServices {
         'email': email,
         'firstName': firstName,
         'lastName': lastName,
-        'gender': gender
+        'gender': gender,
+        'avatar': avatar,
       }),
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       final data = jsonDecode(response.body);
-      Get.offAllNamed('/home');
 
       return {
         'token': data['data']['token'],
@@ -138,6 +144,7 @@ class ApiServices {
         'firstname': data['data']['firstName'],
         'lastname': data['data']['lastName'],
         'gender': data['data']['gender'],
+        'avatar': data['data']['avatar']
       };
     } else if (response.statusCode == 403) {
       final data = jsonDecode(response.body);
@@ -180,7 +187,6 @@ class ApiServices {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      Get.offAllNamed('/home');
 
       return {
         'token': data['data']['token'],

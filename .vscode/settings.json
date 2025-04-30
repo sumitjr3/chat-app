@@ -1,0 +1,8 @@
+{
+  "chat.agent.enabled": false,
+  "chat.commandCenter.enabled": false,
+  "chat.extensionTools.enabled": false,
+  "chat.focusWindowOnConfirmation": false,
+  "chat.setupFromDialog": false,
+  "telemetry.feedback.enabled": false
+}

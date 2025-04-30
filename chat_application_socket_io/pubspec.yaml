@@ -30,3 +30,4 @@ flutter:
     - .envApp
     - assets/svg/
     - assets/png/
+    - assets/avatar/

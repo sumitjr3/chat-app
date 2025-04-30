@@ -1,8 +1,9 @@
 import 'package:chat_application_socket_io/cores/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart'; // Import flutter_svg
 
 Widget ChatListWidget(context, String name, String lastMessage,
-    String lastMessageTime, bool genderMale) {
+    String lastMessageTime, String avatar) {
   double Height = MediaQuery.of(context).size.height;
   double width = MediaQuery.of(context).size.width;
   return Container(
@@ -11,6 +12,14 @@ Widget ChatListWidget(context, String name, String lastMessage,
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(10),
       color: AppColors.surfaceColor,
+      boxShadow: const [
+        BoxShadow(
+          color: Color.fromRGBO(0, 0, 0, 0.05),
+          blurRadius: 5,
+          spreadRadius: 1,
+          offset: Offset(0, 3),
+        ),
+      ],
     ),
     child: Padding(
       padding: EdgeInsets.only(
@@ -34,9 +43,7 @@ Widget ChatListWidget(context, String name, String lastMessage,
                 shape: BoxShape.circle,
               ),
               child: ClipOval(
-                child: genderMale
-                    ? Image.asset('assets/png/male.jpg')
-                    : Image.asset('assets/png/female.jpg'),
+                child: SvgPicture.asset(avatar),
               ),
             ),
           ),

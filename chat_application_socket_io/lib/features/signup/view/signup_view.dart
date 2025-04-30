@@ -2,6 +2,7 @@ import 'package:chat_application_socket_io/cores/app_colors.dart';
 import 'package:chat_application_socket_io/features/signup/controller/signup_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SignupView extends StatelessWidget {
   final SignupController signupController = Get.put(SignupController());
@@ -121,7 +122,7 @@ class SignupView extends StatelessWidget {
                             borderSide: const BorderSide(
                                 color: AppColors.backgroundDark, width: 0.3),
                           ),
-                          contentPadding: EdgeInsets.symmetric(
+                          contentPadding: const EdgeInsets.symmetric(
                               horizontal: 15, vertical: 10),
                         ),
                       ),
@@ -481,20 +482,35 @@ class SignupView extends StatelessWidget {
                 FilledButton(
                   onPressed: signupController.isLoading.value
                       ? null
-                      : () {
+                      : () async {
                           if (usernameController.text.isNotEmpty &&
                               passwordController.text.isNotEmpty &&
                               emailController.text.isEmail &&
                               firstNameController.text.isNotEmpty &&
                               lastNameController.text.isNotEmpty &&
                               genderController.text.isNotEmpty) {
-                            signupController.signup(
-                                usernameController.text,
-                                passwordController.text,
-                                emailController.text,
-                                firstNameController.text,
-                                lastNameController.text,
-                                genderController.text);
+                            // signupController.signup(
+                            //     usernameController.text,
+                            //     passwordController.text,
+                            //     emailController.text,
+                            //     firstNameController.text,
+                            //     lastNameController.text,
+                            //     genderController.text);
+                            final prefs = await SharedPreferences.getInstance();
+                            await prefs.setString(
+                                'usernameText', usernameController.text);
+                            await prefs.setString(
+                                'passwordText', passwordController.text);
+                            await prefs.setString(
+                                'emailText', emailController.text);
+                            await prefs.setString(
+                                'firstnameText', firstNameController.text);
+                            await prefs.setString(
+                                'lastnameText', lastNameController.text);
+                            await prefs.setString(
+                                'genderText', genderController.text);
+
+                            Get.toNamed('/selectAvtarScreen');
                           } else {
                             Get.snackbar(
                               'Error',

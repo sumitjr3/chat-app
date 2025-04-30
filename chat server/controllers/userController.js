@@ -83,13 +83,11 @@ export const getChatList = async (req, res) => {
     const userRooms = await Room.find({ users: userId });
 
     if (userRooms.length === 0) {
-      return res
-        .status(200)
-        .json({
-          status: "SUCCESS",
-          length: 0,
-          data: { message: "No rooms found for the user." },
-        });
+      return res.status(200).json({
+        status: "SUCCESS",
+        length: 0,
+        data: { message: "No rooms found for the user." },
+      });
     }
 
     const roomsWithOtherUsers = []; // Create a new array
@@ -104,7 +102,7 @@ export const getChatList = async (req, res) => {
       if (otherUser) {
         // Check if otherUser exists
         const otherPerson = await Users.findOne(otherUser).select(
-          "email phone username gender"
+          "email phone username gender avatar"
         );
 
         // Convert Mongoose document to a plain JavaScript object
@@ -121,20 +119,16 @@ export const getChatList = async (req, res) => {
       }
     }
 
-    res
-      .status(200)
-      .json({
-        status: "SUCCESS",
-        length: roomsWithOtherUsers.length,
-        data: roomsWithOtherUsers,
-      });
+    res.status(200).json({
+      status: "SUCCESS",
+      length: roomsWithOtherUsers.length,
+      data: roomsWithOtherUsers,
+    });
   } catch (err) {
     console.error("Error fetching user rooms:", err);
-    res
-      .status(500)
-      .json({
-        status: "FAIL",
-        data: { message: "Failed to fetch user rooms." },
-      });
+    res.status(500).json({
+      status: "FAIL",
+      data: { message: "Failed to fetch user rooms." },
+    });
   }
 };
