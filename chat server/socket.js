@@ -5,15 +5,7 @@ import Room from "./models/room.js";
 // Use a Map for efficient user management
 let onlineUsers = new Map();
 
-const initializeSocket = (server) => {
-  const io = new SocketIO(server, {
-    transports: ["websocket", "polling"],
-    cors: {
-      origin: "*",
-      methods: ["GET", "POST"],
-    },
-  });
-
+const initializeSocket = (io) => {
   io.on("connection", (socket) => {
     console.log("New client connected:", socket.id);
 

@@ -1,5 +1,6 @@
 import 'package:chat_application_socket_io/cores/app_colors.dart';
 import 'package:chat_application_socket_io/features/chat/controller/chat_controller.dart';
+import 'package:chat_application_socket_io/features/chat/controller/update_chat_list_controller.dart';
 import 'package:chat_application_socket_io/features/chat/models/message_model.dart';
 import 'package:chat_application_socket_io/features/chat/widgets/chat_bubble.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,8 @@ import 'package:intl/intl.dart';
 
 class ChatScreen extends StatelessWidget {
   final ChatController controller = Get.put(ChatController());
+  final UpdateChatListController updateChatListController =
+      Get.put(UpdateChatListController());
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
@@ -31,6 +34,7 @@ class ChatScreen extends StatelessWidget {
       onWillPop: () async {
         controller.onClose();
         controller.close();
+        updateChatListController.disconnectChatListSocket();
         Get.back();
         return true;
       },
@@ -75,6 +79,7 @@ class ChatScreen extends StatelessWidget {
                       onPressed: () {
                         controller.onClose();
                         controller.close();
+                        updateChatListController.disconnectChatListSocket();
                         Get.back();
                       },
                       child: Icon(
@@ -419,6 +424,7 @@ class ChatScreen extends StatelessWidget {
                         borderRadius: BorderRadius.all(Radius.circular(16))),
                     suffixIcon: GestureDetector(
                       onTap: () {
+                        updateChatListController.sendMessage();
                         controller.sendMessage();
                         _textController.clear();
                       },

@@ -133,16 +133,36 @@ class ChatListView extends StatelessWidget {
 
   /// Builds the main content area: shimmer loader, empty state, or chat list.
   Widget _buildChatListContent(double height, double width) {
-    // Show shimmer effect while loading
-    if (controller.isLoading.value) {
+    // Wrap the content with RefreshIndicator
+    return RefreshIndicator(
+      // Set the color of the refresh indicator
+      color: AppColors.orange,
+      backgroundColor: AppColors.background,
+      // Define the action to perform when pulled down
+      onRefresh: () => controller.getChatList(),
+      child:
+          _buildActualContent(height, width), // Build the actual content inside
+    );
+  }
+
+  /// Builds the content based on loading state and data availability.
+  Widget _buildActualContent(double height, double width) {
+    if (controller.isLoading.value && controller.chatList.isEmpty) {
+      // Show shimmer only if loading and the list is currently empty
       return _buildShimmerEffect(height, width);
-    }
-    // Show empty state if not loading and chat list is empty
-    else if (controller.chatList.isEmpty) {
-      return _buildEmptyState(width);
-    }
-    // Show the actual chat list
-    else {
+    } else if (!controller.isLoading.value && controller.chatList.isEmpty) {
+      // Show empty state if not loading and chat list is empty
+      // Wrap with ListView to allow scrolling even when empty, enabling pull-to-refresh
+      return LayoutBuilder(builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: _buildEmptyState(width),
+          ),
+        );
+      });
+    } else {
       return _buildChatList(height);
     }
   }
@@ -211,6 +231,8 @@ class ChatListView extends StatelessWidget {
   /// Builds the actual list of chat items.
   Widget _buildChatList(double height) {
     return ListView.separated(
+      physics:
+          const AlwaysScrollableScrollPhysics(), // Ensure list is always scrollable for refresh
       itemCount: controller.chatList.length,
       // Add dividers between chat items for better separation
       separatorBuilder: (context, index) => Divider(
@@ -233,9 +255,12 @@ class ChatListView extends StatelessWidget {
             prefs.setString('receiver_mail', chatItem.email ?? '');
             prefs.setString('receiver_gender', chatItem.gender ?? '');
             prefs.setString('receiver_avatar', chatItem.avatar ?? '');
+            await controller.disconnectChatListSocket();
 
-            // Navigate to the chat screen
-            Get.toNamed('/chatScreen');
+            Future.delayed(const Duration(seconds: 2), () {
+              // Navigate to the chat screen
+              Get.toNamed('/chatScreen');
+            });
           },
           child: Padding(
             padding: EdgeInsets.symmetric(
