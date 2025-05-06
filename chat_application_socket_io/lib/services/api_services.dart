@@ -196,6 +196,7 @@ class ApiServices {
         'firstname': data['data']['firstName'],
         'lastname': data['data']['lastName'],
         'gender': data['data']['gender'],
+        'avatar': data['data']['avatar']
       };
     } else if (response.statusCode == 403) {
       final data = jsonDecode(response.body);

@@ -57,7 +57,7 @@ class _CustomChatBubbleState extends State<CustomChatBubble> {
             height: screenHeight * 0.06,
             width: screenWidth * 0.15,
             decoration: BoxDecoration(
-              color: AppColors.background,
+              color: AppColors.sentMessage,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(20),
                 topRight: Radius.circular(20),
@@ -108,7 +108,7 @@ class _CustomChatBubbleState extends State<CustomChatBubble> {
               decoration: BoxDecoration(
                 color: widget.myId == widget.senderId
                     ? AppColors.orange
-                    : AppColors.sentMessage,
+                    : AppColors.backgroundDark,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(20),
                   topRight: const Radius.circular(20),
@@ -151,12 +151,9 @@ class _CustomChatBubbleState extends State<CustomChatBubble> {
         SelectableText(
           displayedMessage,
           style: TextStyle(
-            fontFamily: 'poppins',
-            fontSize: screenHeight * 0.018,
-            color: widget.myId == widget.senderId
-                ? AppColors.sentMessage
-                : AppColors.backgroundDark,
-          ),
+              fontFamily: 'poppins',
+              fontSize: screenHeight * 0.018,
+              color: AppColors.sentMessage),
         ),
         if (!_isExpanded)
           Row(
@@ -185,9 +182,7 @@ class _CustomChatBubbleState extends State<CustomChatBubble> {
                 style: TextStyle(
                   fontFamily: 'poppins',
                   fontSize: screenHeight * 0.01,
-                  color: widget.myId == widget.senderId
-                      ? AppColors.sentMessage
-                      : AppColors.backgroundDark,
+                  color: AppColors.sentMessage,
                 ),
               ),
             ],
@@ -204,9 +199,7 @@ class _CustomChatBubbleState extends State<CustomChatBubble> {
                 style: TextStyle(
                   fontFamily: 'poppins',
                   fontSize: screenHeight * 0.01,
-                  color: widget.myId == widget.senderId
-                      ? AppColors.sentMessage
-                      : AppColors.backgroundDark,
+                  color: AppColors.sentMessage,
                 ),
               ),
             ),
@@ -225,9 +218,7 @@ class _CustomChatBubbleState extends State<CustomChatBubble> {
       style: TextStyle(
         fontFamily: 'poppins',
         fontSize: screenHeight * 0.018,
-        color: widget.myId == widget.senderId
-            ? AppColors.sentMessage
-            : AppColors.backgroundDark,
+        color: AppColors.sentMessage,
       ),
     );
     TextPainter textPainter = TextPainter(
@@ -247,9 +238,7 @@ class _CustomChatBubbleState extends State<CustomChatBubble> {
                 style: TextStyle(
                   fontFamily: 'poppins',
                   fontSize: screenHeight * 0.018,
-                  color: widget.myId == widget.senderId
-                      ? AppColors.sentMessage
-                      : AppColors.backgroundDark,
+                  color: AppColors.sentMessage,
                 ),
               ),
               Container(
@@ -263,7 +252,7 @@ class _CustomChatBubbleState extends State<CustomChatBubble> {
                         fontFamily: 'poppins',
                         fontSize: screenHeight * 0.01,
                         color: widget.myId == widget.senderId
-                            ? AppColors.sentMessage
+                            ? AppColors.background
                             : AppColors.backgroundDark,
                       ),
                     ),
@@ -282,9 +271,7 @@ class _CustomChatBubbleState extends State<CustomChatBubble> {
                   style: TextStyle(
                     fontFamily: 'poppins',
                     fontSize: screenHeight * 0.018,
-                    color: widget.myId == widget.senderId
-                        ? AppColors.sentMessage
-                        : AppColors.backgroundDark,
+                    color: AppColors.sentMessage,
                   ),
                 ),
               ),
@@ -298,9 +285,7 @@ class _CustomChatBubbleState extends State<CustomChatBubble> {
                   style: TextStyle(
                     fontFamily: 'poppins',
                     fontSize: screenHeight * 0.01,
-                    color: widget.myId == widget.senderId
-                        ? AppColors.sentMessage
-                        : AppColors.backgroundDark,
+                    color: AppColors.sentMessage,
                   ),
                 ),
               ),

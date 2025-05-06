@@ -13,22 +13,13 @@ class ChatScreen extends StatelessWidget {
   final UpdateChatListController updateChatListController =
       Get.put(UpdateChatListController());
   final TextEditingController _textController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
 
-  String getSvgPath(String name) {
-    if (name == 'male') {
-      return 'assets/png/male.jpg';
-    } else {
-      return 'assets/png/female.jpg';
-    }
-  }
+  ChatScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
-
-    // controller.scrollController = _scrollController;
 
     return WillPopScope(
       onWillPop: () async {
@@ -41,17 +32,17 @@ class ChatScreen extends StatelessWidget {
       child: Container(
         height: screenHeight * 0.9,
         width: screenWidth,
-        // decoration: const BoxDecoration(
-        //   image: DecorationImage(
-        //     image: AssetImage('assets/svg/background.svg'),
-        //     fit: BoxFit.fitHeight,
-        //     colorFilter:
-        //         ColorFilter.mode(AppColors.background, BlendMode.darken),
-        //   ),
-        // ),
+        decoration: const BoxDecoration(
+          // Lightweight gradient background
+          gradient: LinearGradient(
+            colors: [AppColors.background, AppColors.surfaceColor],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
         child: Scaffold(
+          backgroundColor: Colors.transparent,
           resizeToAvoidBottomInset: true,
-          backgroundColor: AppColors.background,
           appBar: PreferredSize(
             preferredSize: Size.fromHeight(screenHeight * 0.08),
             child: GestureDetector(
@@ -66,7 +57,7 @@ class ChatScreen extends StatelessWidget {
                     foregroundColor: AppColors.background,
                     shadowColor: AppColors.textTernary,
                     surfaceTintColor: AppColors.background,
-                    elevation: 0.4,
+                    elevation: 4.0, // Increased AppBar elevation
                     centerTitle: false,
                     titleSpacing: screenWidth * 0.00,
                     leadingWidth: screenWidth * 0.13,
@@ -281,33 +272,47 @@ class ChatScreen extends StatelessWidget {
                 Obx(
                   () {
                     if (controller.isLoading.value) {
-                      return const Center(child: CircularProgressIndicator());
+                      return const Expanded(
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.orange,
+                          ),
+                        ),
+                      );
                     } else if (controller.messages.isEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            SizedBox(height: screenHeight * 0.37),
-                            Text(
-                              'Say Hello!',
-                              style: TextStyle(
-                                fontSize: screenHeight * 0.025,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.orange,
+                      return Expanded(
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.chat_bubble_outline_rounded,
+                                size: screenHeight * 0.1,
+                                color: AppColors.orange.withOpacity(0.5),
                               ),
-                            ),
-                            SizedBox(height: screenHeight * 0.01),
-                            Text(
-                              'Start your conversation',
-                              style: TextStyle(
-                                fontSize: screenHeight * 0.015,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w400,
+                              SizedBox(height: screenHeight * 0.02),
+                              Text(
+                                'Start Chatting',
+                                style: TextStyle(
+                                  fontSize: screenHeight * 0.025,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.orange,
+                                ),
                               ),
-                            ),
-                          ],
+                              SizedBox(height: screenHeight * 0.01),
+                              Text(
+                                'Send your first message',
+                                style: TextStyle(
+                                  fontSize: screenHeight * 0.015,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w400,
+                                  color: AppColors.textTernary,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     } else {
@@ -315,13 +320,11 @@ class ChatScreen extends StatelessWidget {
                         child: Container(
                           color: Colors.transparent,
                           child: Padding(
-                            padding: EdgeInsets.only(
-                              bottom: screenHeight * 0.088,
-                              left: screenWidth * 0.02,
-                              right: screenWidth * 0.02,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: screenWidth * 0.02,
                             ),
                             child: ListView.builder(
-                              // controller: _scrollController,
+                              controller: controller.scrollController,
                               itemCount: controller.messageCount.value,
                               itemBuilder: (context, index) {
                                 Message currentMessage =
@@ -386,67 +389,114 @@ class ChatScreen extends StatelessWidget {
               ],
             ),
           ),
-          floatingActionButton: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                height: screenHeight * 0.065,
-                width: screenWidth * 0.9,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  color: AppColors.background,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.orange.withOpacity(0.2),
-                      spreadRadius: 1,
-                      blurRadius: 2,
-                      offset: const Offset(0, 0),
-                    ),
-                  ],
-                ),
-                child: TextField(
-                  controller: _textController,
-                  onChanged: (value) {
-                    controller.newMessage.value =
-                        value[0].toUpperCase() + value.substring(1);
-                    if (value.isNotEmpty) {
-                      controller.startTyping();
-                    } else {
-                      controller.stopTyping();
-                    }
-                  },
-                  decoration: InputDecoration(
-                    hintText: 'Type a message...',
-                    hintStyle: const TextStyle(
-                        fontFamily: 'Poppins', color: AppColors.textTernary),
-                    border: const OutlineInputBorder(
-                        borderSide: BorderSide.none,
-                        borderRadius: BorderRadius.all(Radius.circular(16))),
-                    suffixIcon: GestureDetector(
-                      onTap: () {
-                        updateChatListController.sendMessage();
-                        controller.sendMessage();
-                        _textController.clear();
-                      },
-                      child: Icon(
-                        Icons.send_rounded,
-                        color: AppColors.orange,
-                        size: screenHeight * 0.03,
-                      ),
-                    ),
-                    filled: true,
-                    fillColor: AppColors.background,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: screenWidth * 0.03,
-                      vertical: screenHeight * 0.02,
+          bottomNavigationBar: Container(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom + 8,
+              left: screenWidth * 0.03,
+              right: screenWidth * 0.03,
+              top: 8,
+            ),
+            decoration: const BoxDecoration(
+              color: Colors.transparent,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Material(
+                    // Replaced Container with Material for elevation
+                    elevation: 4.0, // Added elevation
+                    borderRadius: BorderRadius.circular(24),
+                    color: AppColors.surfaceColor,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _textController,
+                            onChanged: (value) {
+                              controller.newMessage.value = value.isNotEmpty
+                                  ? value[0].toUpperCase() + value.substring(1)
+                                  : value;
+                              if (value.isNotEmpty) {
+                                controller.startTyping();
+                              } else {
+                                controller.stopTyping();
+                              }
+                            },
+                            decoration: InputDecoration(
+                              hintText: 'Type a message...',
+                              hintStyle: TextStyle(
+                                fontFamily: 'Poppins',
+                                color: AppColors.textTernary,
+                                fontSize: screenHeight *
+                                    0.017, // Adjusted for responsiveness
+                              ),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: screenWidth *
+                                    0.04, // Adjusted for responsiveness
+                                vertical: screenHeight *
+                                    0.015, // Adjusted for responsiveness
+                              ),
+                              filled:
+                                  false, // Changed: Material widget now provides the background
+                              // fillColor: AppColors.background, // Removed
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(24.0),
+                                borderSide: BorderSide(
+                                  color: AppColors.orange.withOpacity(0.3),
+                                  width:
+                                      0.8, // Slightly thicker border for better visibility
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(24.0),
+                                borderSide: BorderSide(
+                                  color: AppColors.orange.withOpacity(0.3),
+                                  width: 0.8, // Slightly thicker border
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(24.0),
+                                borderSide: const BorderSide(
+                                  color: AppColors
+                                      .orange, // Highlight color on focus
+                                  width: 1.0, // Slightly thicker focused border
+                                ),
+                              ),
+                              suffixIcon: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(24),
+                                  onTap: () {
+                                    // Send message logic
+                                    if (_textController.text
+                                        .trim()
+                                        .isNotEmpty) {
+                                      updateChatListController.sendMessage();
+                                      controller.sendMessage();
+                                      _textController.clear();
+                                    }
+                                  },
+                                  child: Padding(
+                                    padding: EdgeInsets.all(12),
+                                    child: Icon(
+                                      Icons.send_rounded,
+                                      color: AppColors.orange,
+                                      size: screenHeight *
+                                          0.03, // Adjusted for responsiveness
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          floatingActionButtonLocation:
-              FloatingActionButtonLocation.miniCenterFloat,
         ),
       ),
     );

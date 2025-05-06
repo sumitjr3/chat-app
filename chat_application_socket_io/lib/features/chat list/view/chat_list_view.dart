@@ -38,21 +38,42 @@ class ChatListView extends StatelessWidget {
             automaticallyImplyLeading: false, // Remove default back button
             title: _buildWelcomeMessage(height), // Welcome message widget
             actions: [
-              // Profile icon button
-              IconButton(
-                icon: SvgPicture.asset(
-                  'assets/svg/profile.svg',
-                  height: height * 0.035, // Slightly adjusted size
-                  width: width * 0.035,
-                  colorFilter: const ColorFilter.mode(
-                      AppColors.backgroundDark, BlendMode.srcIn), // Apply color
+              Padding(
+                padding: EdgeInsets.only(right: width * 0.03),
+                child: GestureDetector(
+                  onTap: () {
+                    Get.toNamed('/profileScreen');
+                  },
+                  child: Container(
+                    height: height * 0.05,
+                    width: height * 0.05,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                    ),
+                    child: ClipOval(
+                      child: SvgPicture.asset(controller.userAvatar.value),
+                    ),
+                  ),
                 ),
-                tooltip: 'Profile', // Accessibility
-                onPressed: () {
-                  Get.toNamed('/profileScreen');
-                },
               ),
-              SizedBox(width: width * 0.02), // Add some padding to the right
+              Padding(
+                padding: EdgeInsets.only(right: width * 0.05),
+                child: GestureDetector(
+                  onTap: () {
+                    // Navigate to the user search view
+                    Get.toNamed('/searchView');
+                  },
+                  child: Container(
+                    height: height * 0.05,
+                    width: height * 0.05,
+                    decoration: BoxDecoration(
+                      border: Border.all(width: 1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.add),
+                  ),
+                ),
+              ),
             ],
           ),
           body: Padding(
@@ -63,17 +84,8 @@ class ChatListView extends StatelessWidget {
               children: [
                 SizedBox(height: verticalSpacing / 2), // Reduced top spacing
 
-                // "Chats" Section Header
-                Text(
-                  'Chats',
-                  style: TextStyle(
-                    fontSize: height * 0.028, // Slightly larger title
-                    fontWeight: FontWeight.bold, // Bolder title
-                    fontFamily: 'Poppins',
-                    color: AppColors.backgroundDark,
-                  ),
-                ),
-                SizedBox(height: verticalSpacing), // Space before the list
+                // Space before the list
+                SizedBox(height: verticalSpacing),
 
                 // Conditional UI based on loading state and chat list content
                 Obx(
@@ -83,19 +95,6 @@ class ChatListView extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
-          ),
-          // Floating Action Button to start a new chat or search users
-          floatingActionButton: FloatingActionButton(
-            backgroundColor: AppColors.orange, // Use accent color
-            foregroundColor: Colors.white, // White icon for contrast
-            tooltip: 'Search Users', // Accessibility
-            onPressed: () {
-              // Navigate to the user search view
-              Get.toNamed('/searchView');
-            },
-            child: const Icon(
-              Icons.person_search_outlined, // Changed icon for clarity
             ),
           ),
         ),
@@ -230,17 +229,10 @@ class ChatListView extends StatelessWidget {
 
   /// Builds the actual list of chat items.
   Widget _buildChatList(double height) {
-    return ListView.separated(
+    return ListView.builder(
       physics:
           const AlwaysScrollableScrollPhysics(), // Ensure list is always scrollable for refresh
       itemCount: controller.chatList.length,
-      // Add dividers between chat items for better separation
-      separatorBuilder: (context, index) => Divider(
-        height: 1, // Thin divider
-        indent: 16, // Indent from the left
-        endIndent: 16, // Indent from the right
-        color: AppColors.textSecondary.withOpacity(0.2), // Subtle color
-      ),
       itemBuilder: (context, index) {
         final chatItem = controller.chatList[index];
 
@@ -257,14 +249,14 @@ class ChatListView extends StatelessWidget {
             prefs.setString('receiver_avatar', chatItem.avatar ?? '');
             await controller.disconnectChatListSocket();
 
-            Future.delayed(const Duration(seconds: 2), () {
+            Future.delayed(const Duration(seconds: 1), () {
               // Navigate to the chat screen
               Get.toNamed('/chatScreen');
             });
           },
           child: Padding(
             padding: EdgeInsets.symmetric(
-                vertical: height * 0.01), // Add vertical padding
+                vertical: height * 0.002), // Add vertical padding
             // Use the custom widget to display individual chat list item
             child: ChatListWidget(
               context, // Pass context if needed by the widget

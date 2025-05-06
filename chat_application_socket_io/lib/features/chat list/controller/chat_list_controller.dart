@@ -13,6 +13,7 @@ class ChatListController extends GetxController {
   var userEmail = ''.obs;
   var userImage = ''.obs;
   var userToken = ''.obs;
+  var userAvatar = ''.obs;
   var chatList = <ChatListModel>[].obs;
   final ApiServices _apiServices = ApiServices();
 
@@ -34,6 +35,8 @@ class ChatListController extends GetxController {
     userName.value = prefs.getString('username') ?? '';
     userEmail.value = prefs.getString('email') ?? '';
     userToken.value = prefs.getString('token') ?? '';
+    userAvatar.value = prefs.getString('avatar') ?? '';
+
     if (userId.value.isNotEmpty && userToken.value.isNotEmpty) {
       // Fetch initial list via HTTP
       await getChatList();

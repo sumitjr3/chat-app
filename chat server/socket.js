@@ -6,35 +6,49 @@ import Room from "./models/room.js";
 let onlineUsers = new Map();
 
 const initializeSocket = (io) => {
+  // Set up CORS and other socket.io configurations
+  io.engine.on("connection_error", (err) => {
+    console.log("Connection error:", err);
+  });
+
   io.on("connection", (socket) => {
     console.log("New client connected:", socket.id);
+
+    // Handle connection errors
+    socket.on("error", (error) => {
+      console.error("Socket error:", error);
+    });
 
     socket.on("joinRoom", async ({ roomID, userId }) => {
       if (!roomID || !userId) {
         console.error("Room ID or User ID is missing");
+        socket.emit("error", { message: "Room ID and User ID are required" });
         return;
       }
 
       try {
         const [user1Id, user2Id] = roomID.split("-");
-
+        
+        // Get IST time
         const istTime = new Date().toLocaleString("en-US", {
           timeZone: "Asia/Kolkata",
           hour12: false,
-          iso: "extended",
         });
-        // const istTimeFormatted = new Date(istTime).toISOString();
 
-        // Use findOneAndUpdate with upsert to simplify room creation/update logic
-        // const room = await Room.findOneAndUpdate(
-        //   { roomID },
-        //   { $addToSet: { users: [user1Id, user2Id] } },
-        //   { upsert: true, new: true }
-        // );
-
+        // Join room and update online users
         socket.join(roomID);
-        onlineUsers.set(userId, socket.id);
-        io.to(roomID).emit("total_clients", onlineUsers.size);
+        onlineUsers.set(userId, {
+          socketId: socket.id,
+          roomID,
+          lastActive: new Date(),
+        });
+
+        // Notify room members
+        io.to(roomID).emit("total_clients", {
+          count: io.sockets.adapter.rooms.get(roomID)?.size || 0,
+          onlineUsers: Array.from(onlineUsers.keys()),
+        });
+
         console.log(`User ${userId} joined room: ${roomID}`);
       } catch (err) {
         console.error("Error joining room:", err);
@@ -49,60 +63,52 @@ const initializeSocket = (io) => {
         console.error("Room ID or User ID is missing");
         return;
       }
-      socket.leave(roomID);
-      onlineUsers.delete(userId);
-      io.to(roomID).emit("total_clients", onlineUsers.size);
-      console.log(`User ${userId} left room: ${roomID}`);
-    });
-
-    socket.on("rejoinRoom", ({ roomID }) => {
-      if (!roomID) {
-        console.error("Room ID is missing");
-        return;
-      }
-      socket.join(roomID);
-      console.log(`User rejoined room: ${roomID}`);
+      handleUserLeaving(socket, roomID, userId);
     });
 
     socket.on("sendMessage", async (data) => {
       const { sender, receiver, content, roomID } = data;
       if (!roomID || !sender || !receiver || !content) {
         console.error("Incomplete message data:", data);
+        socket.emit("error", { message: "Incomplete message data" });
         return;
       }
+
       try {
         const istTime = new Date().toLocaleString("en-US", {
           timeZone: "Asia/Kolkata",
           hour12: false,
-          iso: "extended",
         });
-
-        const istTimeFormatted = new Date(istTime).toISOString();
 
         const message = new Message({
           sender,
           receiver,
           content,
           roomID,
-          createdAt: new Date(istTimeFormatted),
+          createdAt: new Date(istTime),
         });
         await message.save();
 
-        // Update the room's last_updated and last_message fields
-
+        // Update room in a single operation
         await Room.findOneAndUpdate(
           { roomID },
           {
             $addToSet: { users: [sender, receiver] },
-            last_updated: istTimeFormatted,
-            last_message: content,
+            $set: {
+              last_updated: istTime,
+              last_message: content,
+            }
           },
           { upsert: true, new: true }
         );
 
-        io.to(roomID).emit("message", { ...data, timestamp: istTime });
+        io.to(roomID).emit("message", {
+          ...data,
+          timestamp: istTime,
+          status: "delivered",
+        });
       } catch (err) {
-        console.error("Error saving message to database:", err);
+        console.error("Error saving message:", err);
         socket.emit("error", {
           message: "Failed to send message. Please try again.",
         });
@@ -110,32 +116,41 @@ const initializeSocket = (io) => {
     });
 
     socket.on("typing", ({ roomID, userId }) => {
-      if (!roomID || !userId) {
-        console.error("Incomplete typing data:", { roomID, userId });
-        return;
-      }
+      if (!roomID || !userId) return;
       socket.to(roomID).emit("typing", userId);
     });
 
     socket.on("stop_typing", ({ roomID, userId }) => {
-      if (!roomID || !userId) {
-        console.error("Incomplete stop_typing data:", { roomID, userId });
-        return;
-      }
+      if (!roomID || !userId) return;
       socket.to(roomID).emit("stop_typing", userId);
     });
 
     socket.on("disconnect", () => {
-      const userId = Array.from(onlineUsers.keys()).find(
-        (key) => onlineUsers.get(key) === socket.id
-      );
+      const userId = Array.from(onlineUsers.entries())
+        .find(([_, data]) => data.socketId === socket.id)?.[0];
+      
       if (userId) {
-        onlineUsers.delete(userId);
-        io.emit("user_offline", userId);
+        const userData = onlineUsers.get(userId);
+        if (userData?.roomID) {
+          handleUserLeaving(socket, userData.roomID, userId);
+        }
       }
-      console.log("Client disconnected:", socket.id);
     });
   });
 };
+
+function handleUserLeaving(socket, roomID, userId) {
+  socket.leave(roomID);
+  onlineUsers.delete(userId);
+  
+  // Notify room about user leaving
+  socket.to(roomID).emit("total_clients", {
+    count: (socket.adapter.rooms.get(roomID)?.size || 0) - 1,
+    onlineUsers: Array.from(onlineUsers.keys()),
+  });
+  
+  socket.to(roomID).emit("user_offline", userId);
+  console.log(`User ${userId} left room: ${roomID}`);
+}
 
 export default initializeSocket;

@@ -13,6 +13,7 @@ class LoginController extends GetxController {
   var firstname = ''.obs;
   var lastname = ''.obs;
   var gender = ''.obs;
+  var avatar = ''.obs;
 
   Future<void> login(String username, String password) async {
     isLoading.value = true;
@@ -27,6 +28,7 @@ class LoginController extends GetxController {
       firstname.value = result['firstname'];
       lastname.value = result['lastname'];
       gender.value = result['gender'];
+      avatar.value = result['avatar'];
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', token.value);
@@ -36,6 +38,8 @@ class LoginController extends GetxController {
       await prefs.setString('firstname', firstname.value);
       await prefs.setString('lastname', lastname.value);
       await prefs.setString('gender', gender.value);
+      await prefs.setString('avatar', avatar.value);
+
       await prefs.setString('loggedIn', 'true');
       Get.offAllNamed('/home');
     } catch (e) {

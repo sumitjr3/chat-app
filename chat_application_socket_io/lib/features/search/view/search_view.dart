@@ -17,67 +17,111 @@ class SearchViewClass extends StatelessWidget {
     return Obx(() {
       return SafeArea(
         child: Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            backgroundColor: AppColors.background,
+            elevation: 0,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back_ios, color: AppColors.backgroundDark),
+              onPressed: () => Get.back(),
+            ),
+            title: Text(
+              'Search User',
+              style: TextStyle(
+                fontSize: height * 0.02,
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
           body: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              SizedBox(height: height * 0.02),
               Padding(
                 padding: EdgeInsets.only(
                   left: width * 0.05,
                   right: width * 0.05,
-                  top: width * 0.05,
+                  top: width * 0.03,
                 ),
-                child: Container(
-                  width: double.infinity,
-                  child: TextField(
-                    scrollPadding: EdgeInsets.zero,
-                    autofocus: false,
-                    onChanged: (value) {
-                      controller.searchValue.value = value;
-                    },
-                    controller: searchControllertc,
-                    keyboardType: TextInputType.streetAddress,
-                    decoration: InputDecoration(
-                      hintText: "Search using number or name",
-                      hintStyle: TextStyle(
-                        fontSize: height * 0.018,
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.w400,
-                        fontFamily: 'Poppins',
-                      ),
-                      prefixIcon: const Icon(Icons.search_rounded),
-                      fillColor: AppColors.background,
-                      filled: true,
-                      border: InputBorder.none,
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(25),
-                        borderSide: const BorderSide(
-                          color: AppColors.backgroundDark,
-                          width: 1,
+                child: Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: Container(
+                    width: double.infinity,
+                    child: TextField(
+                      scrollPadding: EdgeInsets.zero,
+                      autofocus: false,
+                      onChanged: (value) {
+                        controller.searchValue.value = value;
+                      },
+                      controller: searchControllertc,
+                      keyboardType: TextInputType.streetAddress,
+                      decoration: InputDecoration(
+                        hintText: "Search using number or name",
+                        hintStyle: TextStyle(
+                          fontSize: height * 0.018,
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w400,
+                          fontFamily: 'Poppins',
                         ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(25),
-                        borderSide: const BorderSide(
-                          color: AppColors.orange, // Focused border color
-                          width: 1.0,
+                        prefixIcon: const Icon(Icons.search_rounded),
+                        fillColor: AppColors.surfaceColor,
+                        filled: true,
+                        border: InputBorder.none,
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(25),
+                          borderSide: const BorderSide(
+                            color: AppColors.backgroundDark,
+                            width: 0.5,
+                          ),
                         ),
-                      ),
-                      contentPadding: EdgeInsets.symmetric(
-                        vertical: height * 0.01,
-                        horizontal: width * 0.02,
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(25),
+                          borderSide: const BorderSide(
+                            color: AppColors.orange, // Focused border color
+                            width: 0.5,
+                          ),
+                        ),
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: height * 0.01,
+                          horizontal: width * 0.02,
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
               SizedBox(height: height * 0.01),
-              TextButton(
-                  style: ButtonStyle(),
-                  onPressed: () {
-                    controller.getSearchUser();
-                  },
-                  child: const Text('Search')),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: width * 0.05),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      controller.getSearchUser();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.orange,
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      padding: EdgeInsets.symmetric(vertical: height * 0.015),
+                    ),
+                    child: Text(
+                      'Search',
+                      style: TextStyle(
+                        fontSize: height * 0.018,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'Poppins',
+                      ),
+                    ),
+                  ),
+                ),
+              ),
               SizedBox(
                 height: height * 0.02,
               ),
@@ -100,13 +144,16 @@ class SearchViewClass extends StatelessWidget {
                             prefs.setString('receiver_gender',
                                 controller.userList[0].gender);
 
+                            prefs.setString('receiver_avatar',
+                                controller.userList[0].avatar);
+
                             //navigate to chat screen
                             Get.toNamed('/chatScreen');
                           },
                           child: SearchWidget(
                             context,
                             controller.userList[0].username,
-                            controller.userList[0].gender == 'male',
+                            controller.userList[0].avatar,
                           ),
                         )
             ],

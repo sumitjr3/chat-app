@@ -30,21 +30,22 @@ class ChatController extends GetxController {
   String? _currentRoomID;
   bool _shouldReconnect = true; // Flag to control reconnection
   late ScrollController scrollController;
-  bool _isInitialLoad = true;
+  var isInitialScrollDone = false.obs;
   static var _baseUrl = dotenv.env['DEVELOPMENT_URL'];
 
   @override
   void onInit() {
     super.onInit();
+    scrollController = ScrollController();
     getInfo();
     connectSocket();
   }
 
   @override
   void onClose() {
+    scrollController.dispose();
     super.onClose();
     leaveRoomAndDisconnect();
-    // close();
   }
 
   Future<void> close() async {
@@ -201,35 +202,46 @@ class ChatController extends GetxController {
           : '${receiverId.value}-${myId.value}';
 
       if (!_isConnected) {
-        print('Socket not connected, cannot send message');
+        print('Socket not connected, attempting to reconnect...');
+        connectSocket();
+        Future.delayed(Duration(seconds: 1), () {
+          if (_isConnected) _sendMessageImpl();
+        });
         return;
       }
 
-      String createdAt = DateTime.now().toIso8601String();
-      Message message = Message(
-        id: _uuid.v4(),
-        sender: myId.value,
-        receiver: receiverId.value,
-        content: newMessage.value,
-        roomID: roomID,
-        createdAt: DateTime.now(),
-      );
-      messages.add(message);
-      messageCount.value = messages.length;
-      print('msg sent 1');
-
-      socket.emit('sendMessage', {
-        'sender': myId.value,
-        'receiver': receiverId.value,
-        'content': newMessage.value,
-        'roomID': roomID,
-        'createdAt': createdAt,
-      });
-      stopTyping();
-      print('msg sent 2');
-      newMessage.value = '';
-      // scrollToBottom(); // Scroll to bottom when a message is sent
+      _sendMessageImpl();
+      scrollToBottom();
     }
+  }
+
+  void _sendMessageImpl() {
+    String roomID = myId.value.compareTo(receiverId.value) < 0
+        ? '${myId.value}-${receiverId.value}'
+        : '${receiverId.value}-${myId.value}';
+
+    String createdAt = DateTime.now().toIso8601String();
+    Message message = Message(
+      id: _uuid.v4(),
+      sender: myId.value,
+      receiver: receiverId.value,
+      content: newMessage.value,
+      roomID: roomID,
+      createdAt: DateTime.now(),
+    );
+    messages.add(message);
+    messageCount.value = messages.length;
+
+    socket.emit('sendMessage', {
+      'sender': myId.value,
+      'receiver': receiverId.value,
+      'content': newMessage.value,
+      'roomID': roomID,
+      'createdAt': createdAt,
+    });
+    
+    stopTyping();
+    newMessage.value = '';
   }
 
   void leaveRoomAndDisconnect() {
@@ -258,19 +270,23 @@ class ChatController extends GetxController {
           myId.value, receiverId.value, token.value);
 
       if (fetchedMessages['messages'] != null) {
-        print(fetchedMessages.toString());
-
-        // Explicitly cast each item to Message
         List<Message> oldMessages = (fetchedMessages['messages'] as List)
             .map((item) => Message.fromJson(item as Map<String, dynamic>))
             .toList();
 
         messages.assignAll(oldMessages);
+        messageCount.value = messages.length;
+        
+        // Schedule scroll after build
+        if (!isInitialScrollDone.value && messages.isNotEmpty) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            scrollToBottom(animate: false);
+            isInitialScrollDone.value = true;
+          });
+        }
       } else {
-        print('--------------------------------------empty');
         messages.value = [];
       }
-      messageCount.value = messages.length;
     } catch (e) {
       print('Error fetching old messages: $e');
     } finally {
@@ -278,11 +294,19 @@ class ChatController extends GetxController {
     }
   }
 
-  // void scrollToBottom() {
-  //   WidgetsBinding.instance.addPostFrameCallback((_) {
-  //     scrollController.jumpTo(scrollController.position.maxScrollExtent);
-  //   });
-  // }
+  void scrollToBottom({bool animate = true}) {
+    if (!scrollController.hasClients) return;
+    
+    if (animate) {
+      scrollController.animateTo(
+        scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    } else {
+      scrollController.jumpTo(scrollController.position.maxScrollExtent);
+    }
+  }
 
   void refreshChats() async {
     isLoading.value = true;
