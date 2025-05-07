@@ -85,7 +85,7 @@ class ChatListController extends GetxController {
       // Optionally attempt manual reconnection or show an error
       if (_shouldReconnect) {
         // Consider adding a delay before retrying
-        Future.delayed(const Duration(seconds: 5), () {
+        Future.delayed(const Duration(seconds: 3), () {
           if (!_isConnected && _shouldReconnect) {
             // Check again before connecting
             print(

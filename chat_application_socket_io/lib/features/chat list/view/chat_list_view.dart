@@ -132,15 +132,23 @@ class ChatListView extends StatelessWidget {
 
   /// Builds the main content area: shimmer loader, empty state, or chat list.
   Widget _buildChatListContent(double height, double width) {
-    // Wrap the content with RefreshIndicator
-    return RefreshIndicator(
-      // Set the color of the refresh indicator
-      color: AppColors.orange,
-      backgroundColor: AppColors.background,
-      // Define the action to perform when pulled down
-      onRefresh: () => controller.getChatList(),
-      child:
-          _buildActualContent(height, width), // Build the actual content inside
+    // Animate the list content when the chatList changes
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        return FadeTransition(opacity: animation, child: child);
+      },
+      child: RefreshIndicator(
+        key: ValueKey(
+          '${controller.chatList.length}_${controller.chatList.isNotEmpty ? controller.chatList[0].lastMessageTime : ''}',
+        ),
+        // Set the color of the refresh indicator
+        color: AppColors.orange,
+        backgroundColor: AppColors.background,
+        // Define the action to perform when pulled down
+        onRefresh: () => controller.getChatList(),
+        child: _buildActualContent(height, width),
+      ),
     );
   }
 

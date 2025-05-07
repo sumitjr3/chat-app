@@ -122,7 +122,7 @@ export const getChatList = async (req, res) => {
     res.status(200).json({
       status: "SUCCESS",
       length: roomsWithOtherUsers.length,
-      data: roomsWithOtherUsers,
+      data: roomsWithOtherUsers.reverse(),
     });
   } catch (err) {
     console.error("Error fetching user rooms:", err);
