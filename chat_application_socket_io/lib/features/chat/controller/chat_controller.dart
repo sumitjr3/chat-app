@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-class ChatController extends GetxController {
+class ChatController extends GetxController with WidgetsBindingObserver {
   var receiverName = ''.obs;
   var receiverId = ''.obs;
   var myId = ''.obs;
@@ -17,7 +17,7 @@ class ChatController extends GetxController {
   var count = 0.obs;
   var token = ''.obs;
   var messages = <Message>[].obs;
-  var newMessage = ''.obs;
+  var newMessage = ''.obs; 
   var messageCount = 0.obs;
   var isLoading = false.obs;
 
@@ -36,16 +36,41 @@ class ChatController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    WidgetsBinding.instance.addObserver(this);
     scrollController = ScrollController();
     getInfo();
-    connectSocket();
   }
 
   @override
   void onClose() {
+    WidgetsBinding.instance.removeObserver(this);
     scrollController.dispose();
-    super.onClose();
     leaveRoomAndDisconnect();
+    super.onClose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    switch (state) {
+      case AppLifecycleState.resumed:
+        print('Chat Socket: App resumed - Reconnecting socket...');
+        _shouldReconnect = true;
+        if (!_isConnected) {
+          getInfo();
+          connectSocket();
+        }
+        break;
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+        print('Chat Socket: App in background/terminated - Disconnecting socket...');
+        _shouldReconnect = false;
+        leaveRoomAndDisconnect();
+        break;
+      default:
+        break;
+    }
   }
 
   Future<void> close() async {
@@ -72,70 +97,94 @@ class ChatController extends GetxController {
           myId.value.isNotEmpty &&
           token.value.isNotEmpty) {
         await fetchOldMessages();
-        print('---------------------------------myid:- ${myId.value}');
-        print('---------------------------------rid:- ${receiverId.value}');
-        print('---------------------------------token:- ${token.value}');
-
-        print('--------------------------------everything cool');
+        connectSocket();
+        print('Chat Socket: Initialized with myId: ${myId.value}, receiverId: ${receiverId.value}');
       }
     } catch (e) {
-      print('Error getting user info: $e');
+      print('Chat Socket: Error getting user info: $e');
     }
   }
 
   void connectSocket() {
-    if (!_isConnected) {
+    if (_isConnected) {
+      print('Chat Socket: Already connected, skipping connection');
+      return;
+    }
+
+    try {
       socket = IO.io('$_baseUrl', <String, dynamic>{
         'transports': ['websocket', 'polling'],
         'autoConnect': false,
         'reconnection': true,
         'reconnectionAttempts': 5,
         'reconnectionDelay': 2000,
+        'auth': {'token': token.value},
+        'query': {
+          'userId': myId.value,
+          'receiverId': receiverId.value
+        }
       });
 
-      // Remove existing listeners
+      // Remove existing listeners to prevent duplicates
       socket.off('connect');
       socket.off('connect_error');
       socket.off('disconnect');
+      socket.off('message');
+      socket.off('typing');
+      socket.off('stop_typing');
+      socket.off('total_clients');
 
-      socket.on('connect', (_) {
-        print('Connected to WebSocket.');
+      socket.onConnect((_) {
+        print('Chat Socket: Connected successfully');
         _isConnected = true;
         joinRoom();
       });
 
-      socket.on('connect_error', (error) {
-        print('Connection error: $error');
+      socket.onConnectError((error) {
+        print('Chat Socket: Connection error - $error');
+        _isConnected = false;
         if (_shouldReconnect) {
-          reconnect();
+          Future.delayed(const Duration(seconds: 3), () {
+            if (!_isConnected && _shouldReconnect) {
+              print('Chat Socket: Attempting reconnect after error...');
+              socket.connect();
+            }
+          });
         }
       });
 
-      socket.on('disconnect', (_) {
-        print('Disconnected from WebSocket server');
+      socket.onDisconnect((_) {
+        print('Chat Socket: Disconnected');
         _isConnected = false;
+        isOnline.value = false;
         if (_shouldReconnect) {
-          reconnect();
+          Future.delayed(const Duration(seconds: 2), () {
+            if (!_isConnected && _shouldReconnect) {
+              print('Chat Socket: Attempting reconnect after disconnect...');
+              connectSocket();
+            }
+          });
         }
       });
-      socket.on('typing', (userId) {
-        isTyping.value = true;
-      });
-      socket.on('stop_typing', (userId) {
-        isTyping.value = false;
-      });
+
+      // Event listeners
       socket.on('message', (data) {
-        String sender = data['sender'];
-        if (sender != myId.value) {
+        if (data['sender'] != myId.value) {
           messages.add(Message.fromJson(data));
           messageCount.value = messages.length;
-          // scrollToBottom();
+          scrollToBottom();
         }
       });
-      socket.on('total_clients', (count) {
-        count > 1 ? isOnline.value = true : isOnline.value = false;
-      });
+
+      socket.on('typing', (_) => isTyping.value = true);
+      socket.on('stop_typing', (_) => isTyping.value = false);
+      socket.on('total_clients', (count) => isOnline.value = count > 1);
+
+      print('Chat Socket: Attempting to connect...');
       socket.connect();
+    } catch (e) {
+      print('Chat Socket: Error creating socket - $e');
+      _isConnected = false;
     }
   }
 
@@ -152,19 +201,6 @@ class ChatController extends GetxController {
     }
   }
 
-  void reconnect() {
-    if (_isConnected) {
-      socket.disconnect();
-      print('Disconnecting');
-    }
-    if (!_isConnected) {
-      print('Attempting to reconnect...');
-      socket.connect();
-      //recently commented
-      // connectSocket();
-    }
-  }
-
   void joinRoom() {
     String roomID = myId.value.compareTo(receiverId.value) < 0
         ? '${myId.value}-${receiverId.value}'
@@ -178,17 +214,6 @@ class ChatController extends GetxController {
 
     socket.emit('joinRoom', {'roomID': roomID, 'userId': myId.value});
     print('Joined room: $roomID');
-
-    // socket.on('message', (data) {
-    //   String sender = data['sender'];
-    //   String content = data['content'];
-    //   String createdAt = data['createdAt'];
-    //   if (sender != myId.value) {
-    //     messages.add(Message.fromJson(data));
-    //     messageCount.value = messages.length;
-    //     scrollToBottom(); // Scroll to bottom when a new message is received
-    //   }
-    // });
 
     socket.on('joinRoom_error', (error) {
       print('Error joining room: $error');
@@ -239,27 +264,39 @@ class ChatController extends GetxController {
       'roomID': roomID,
       'createdAt': createdAt,
     });
-    
+
     stopTyping();
     newMessage.value = '';
   }
 
-  void leaveRoomAndDisconnect() {
+  Future<void> leaveRoomAndDisconnect() async {
     _shouldReconnect = false;
     if (_currentRoomID != null && _isConnected) {
-      print('Leaving room: $_currentRoomID');
-      socket
-          .emit('leaveRoom', {'roomID': _currentRoomID, 'userId': myId.value});
-      _currentRoomID = null;
-      stopTyping();
+      try {
+        print('Chat Socket: Leaving room - $_currentRoomID');
+        socket.emit('leaveRoom', {
+          'roomID': _currentRoomID,
+          'userId': myId.value
+        });
+        _currentRoomID = null;
+        stopTyping();
+        await disconnectSocket();
+      } catch (e) {
+        print('Chat Socket: Error during room cleanup - $e');
+      }
     }
-    disconnectSocket();
   }
 
-  void disconnectSocket() {
+  Future<void> disconnectSocket() async {
     if (_isConnected) {
-      socket.disconnect();
-      print('Socket disconnected manually');
+      try {
+        await socket.disconnect();
+        _isConnected = false;
+        isOnline.value = false;
+        print('Chat Socket: Disconnected manually');
+      } catch (e) {
+        print('Chat Socket: Error during disconnect - $e');
+      }
     }
   }
 
@@ -276,7 +313,7 @@ class ChatController extends GetxController {
 
         messages.assignAll(oldMessages);
         messageCount.value = messages.length;
-        
+
         // Schedule scroll after build
         if (!isInitialScrollDone.value && messages.isNotEmpty) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -296,7 +333,7 @@ class ChatController extends GetxController {
 
   void scrollToBottom({bool animate = true}) {
     if (!scrollController.hasClients) return;
-    
+
     if (animate) {
       scrollController.animateTo(
         scrollController.position.maxScrollExtent,

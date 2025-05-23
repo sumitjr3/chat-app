@@ -1,4 +1,5 @@
 import 'package:chat_application_socket_io/cores/app_colors.dart';
+import 'package:chat_application_socket_io/features/chat%20list/controller/chat_list_controller.dart';
 import 'package:chat_application_socket_io/features/chat/controller/chat_controller.dart';
 import 'package:chat_application_socket_io/features/chat/controller/update_chat_list_controller.dart';
 import 'package:chat_application_socket_io/features/chat/models/message_model.dart';
@@ -23,9 +24,11 @@ class ChatScreen extends StatelessWidget {
 
     return WillPopScope(
       onWillPop: () async {
+        // Properly cleanup both controllers
+        // await controller.leaveRoomAndDisconnect();
+        updateChatListController.onClose();
         controller.onClose();
-        controller.close();
-        updateChatListController.disconnectChatListSocket();
+        // Get.find<ChatListController>().onInit();
         Get.back();
         return true;
       },
@@ -67,10 +70,10 @@ class ChatScreen extends StatelessWidget {
                       height: 2,
                       minWidth: 2,
                       shape: const CircleBorder(),
-                      onPressed: () {
+                      onPressed: () async {
+                        updateChatListController.onClose();
                         controller.onClose();
-                        controller.close();
-                        updateChatListController.disconnectChatListSocket();
+                        // Get.find<ChatListController>().onInit();
                         Get.back();
                       },
                       child: Icon(

@@ -28,12 +28,6 @@ const initializeSocket = (io) => {
 
       try {
         const [user1Id, user2Id] = roomID.split("-");
-        
-        // Get IST time
-        const istTime = new Date().toLocaleString("en-US", {
-          timeZone: "Asia/Kolkata",
-          hour12: false,
-        });
 
         // Join room and update online users
         socket.join(roomID);
@@ -75,7 +69,11 @@ const initializeSocket = (io) => {
       }
 
       try {
-        const istTime = new Date().toLocaleString("en-US", {
+        // Get the current time as a Date object (represents a specific moment)
+        const currentTime = new Date();
+
+        // Format this time as an IST string for display purposes (e.g., sending to client)
+        const istDisplayTime = currentTime.toLocaleString("en-US", {
           timeZone: "Asia/Kolkata",
           hour12: false,
         });
@@ -85,26 +83,25 @@ const initializeSocket = (io) => {
           receiver,
           content,
           roomID,
-          createdAt: new Date(istTime),
+          createdAt: currentTime, // Store the Date object in the database
         });
         await message.save();
 
-        // Update room in a single operation
         await Room.findOneAndUpdate(
           { roomID },
           {
             $addToSet: { users: [sender, receiver] },
             $set: {
-              last_updated: istTime,
+              last_updated: currentTime, // Store the Date object for last_updated (assuming it's a Date type in schema)
               last_message: content,
-            }
+            },
           },
           { upsert: true, new: true }
         );
 
         io.to(roomID).emit("message", {
           ...data,
-          timestamp: istTime,
+          timestamp: istDisplayTime, // Send the IST formatted string to the client
           status: "delivered",
         });
       } catch (err) {
@@ -126,9 +123,10 @@ const initializeSocket = (io) => {
     });
 
     socket.on("disconnect", () => {
-      const userId = Array.from(onlineUsers.entries())
-        .find(([_, data]) => data.socketId === socket.id)?.[0];
-      
+      const userId = Array.from(onlineUsers.entries()).find(
+        ([_, data]) => data.socketId === socket.id
+      )?.[0];
+
       if (userId) {
         const userData = onlineUsers.get(userId);
         if (userData?.roomID) {
@@ -142,13 +140,13 @@ const initializeSocket = (io) => {
 function handleUserLeaving(socket, roomID, userId) {
   socket.leave(roomID);
   onlineUsers.delete(userId);
-  
+
   // Notify room about user leaving
   socket.to(roomID).emit("total_clients", {
     count: (socket.adapter.rooms.get(roomID)?.size || 0) - 1,
     onlineUsers: Array.from(onlineUsers.keys()),
   });
-  
+
   socket.to(roomID).emit("user_offline", userId);
   console.log(`User ${userId} left room: ${roomID}`);
 }

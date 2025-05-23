@@ -1,4 +1,5 @@
 import 'package:chat_application_socket_io/cores/app_colors.dart';
+import 'package:chat_application_socket_io/features/chat%20list/controller/chat_list_controller.dart';
 import 'package:chat_application_socket_io/features/profile/controller/profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart'; // Import GetX
@@ -22,6 +23,7 @@ class ProfileView extends StatelessWidget {
               appBar: AppBar(
                 leading: IconButton(
                   onPressed: () {
+                    // Get.find<ChatListController>().onInit();
                     Get.back();
                   },
                   icon: const Icon(Icons.arrow_back_ios_rounded),

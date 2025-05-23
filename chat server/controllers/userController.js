@@ -119,10 +119,15 @@ export const getChatList = async (req, res) => {
       }
     }
 
+    // Sort the rooms by last_updated in descending order (most recent first)
+    const sortedRooms = roomsWithOtherUsers.sort(
+      (a, b) => new Date(b.last_updated) - new Date(a.last_updated)
+    );
+
     res.status(200).json({
       status: "SUCCESS",
-      length: roomsWithOtherUsers.length,
-      data: roomsWithOtherUsers.reverse(),
+      length: sortedRooms.length,
+      data: sortedRooms,
     });
   } catch (err) {
     console.error("Error fetching user rooms:", err);

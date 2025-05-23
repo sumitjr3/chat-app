@@ -42,7 +42,14 @@ class ChatListView extends StatelessWidget {
                 padding: EdgeInsets.only(right: width * 0.03),
                 child: GestureDetector(
                   onTap: () {
-                    Get.toNamed('/profileScreen');
+                    // Properly disconnect socket before navigation
+                    controller.onClose();
+                    Get.toNamed('/profileScreen')?.then((_) {
+                      // When returning from chat screen, reconnect if needed
+                      if (!controller.isConnected.value) {
+                        controller.getInfo();
+                      }
+                    });
                   },
                   child: Container(
                     height: height * 0.05,
@@ -60,8 +67,15 @@ class ChatListView extends StatelessWidget {
                 padding: EdgeInsets.only(right: width * 0.05),
                 child: GestureDetector(
                   onTap: () {
+                    // Properly disconnect socket before navigation
+                    controller.onClose();
                     // Navigate to the user search view
-                    Get.toNamed('/searchView');
+                    Get.toNamed('/searchView')?.then((_) {
+                      // When returning from chat screen, reconnect if needed
+                      if (!controller.isConnected.value) {
+                        controller.getInfo();
+                      }
+                    });
                   },
                   child: Container(
                     height: height * 0.05,
@@ -238,40 +252,48 @@ class ChatListView extends StatelessWidget {
   /// Builds the actual list of chat items.
   Widget _buildChatList(double height) {
     return ListView.builder(
-      physics:
-          const AlwaysScrollableScrollPhysics(), // Ensure list is always scrollable for refresh
+      physics: const AlwaysScrollableScrollPhysics(),
       itemCount: controller.chatList.length,
       itemBuilder: (context, index) {
         final chatItem = controller.chatList[index];
 
-        // Navigate to the specific chat screen on tap
         return InkWell(
-          // Use InkWell for ripple effect on tap
           onTap: () async {
-            // Current implementation (saving details directly here):
-            final prefs = await SharedPreferences.getInstance();
-            prefs.setString('receiver_id', chatItem.id ?? '');
-            prefs.setString('receiver_name', chatItem.name ?? '');
-            prefs.setString('receiver_mail', chatItem.email ?? '');
-            prefs.setString('receiver_gender', chatItem.gender ?? '');
-            prefs.setString('receiver_avatar', chatItem.avatar ?? '');
-            await controller.disconnectChatListSocket();
+            try {
+              // Save receiver details
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setString('receiver_id', chatItem.id ?? '');
+              await prefs.setString('receiver_name', chatItem.name ?? '');
+              await prefs.setString('receiver_mail', chatItem.email ?? '');
+              await prefs.setString('receiver_gender', chatItem.gender ?? '');
+              await prefs.setString('receiver_avatar', chatItem.avatar ?? '');
 
-            Future.delayed(const Duration(seconds: 1), () {
-              // Navigate to the chat screen
-              Get.toNamed('/chatScreen');
-            });
+              // Properly disconnect socket before navigation
+              controller.onClose();
+
+              // Navigate after successful cleanup
+              Get.toNamed('/chatScreen')?.then((_) {
+                // When returning from chat screen, reconnect if needed
+                if (!controller.isConnected.value) {
+                  controller.getInfo();
+                }
+              });
+            } catch (e) {
+              print('Error navigating to chat: ${e.toString()}');
+              // Show error to user if needed
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Error opening chat: ${e.toString()}')),
+              );
+            }
           },
           child: Padding(
-            padding: EdgeInsets.symmetric(
-                vertical: height * 0.002), // Add vertical padding
-            // Use the custom widget to display individual chat list item
+            padding: EdgeInsets.symmetric(vertical: height * 0.002),
             child: ChatListWidget(
-              context, // Pass context if needed by the widget
-              chatItem.name ?? 'Unknown User', // Provide default value
-              chatItem.lastMessage ?? '', // Provide default value
-              chatItem.lastMessageTime ?? '', // Provide default value
-              chatItem.avatar ?? '', // Boolean based on gender
+              context,
+              chatItem.name ?? 'Unknown User',
+              chatItem.lastMessage ?? '',
+              chatItem.lastMessageTime ?? '',
+              chatItem.avatar ?? '',
             ),
           ),
         );

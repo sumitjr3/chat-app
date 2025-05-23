@@ -2,31 +2,59 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter/material.dart';
 
-class UpdateChatListController extends GetxController {
+class UpdateChatListController extends GetxController with WidgetsBindingObserver {
   var receiverId = ''.obs;
   var myId = ''.obs;
   late IO.Socket chatListSocket;
-  bool _isConnected = false;
-  bool _shouldReconnect = true; // Flag to control reconnection
+  var isConnected = false.obs;
+  bool _shouldReconnect = true;
   static var _baseUrl = dotenv.env['DEVELOPMENT_URL'];
 
   @override
   void onInit() {
     super.onInit();
+    WidgetsBinding.instance.addObserver(this);
     getInfo();
   }
 
   @override
   void onClose() {
-    super.onClose();
+    WidgetsBinding.instance.removeObserver(this);
     disconnectChatListSocket();
-    // close();
+    super.onClose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    switch (state) {
+      case AppLifecycleState.resumed:
+        print('UpdateChatList Socket: App resumed');
+        if (receiverId.value.isNotEmpty) {
+          print('UpdateChatList Socket: Reconnecting to receiver ${receiverId.value}');
+          _shouldReconnect = true;
+          if (!isConnected.value) {
+            connectSocket();
+          }
+        }
+        break;
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+        print('UpdateChatList Socket: App in background/terminated - Disconnecting socket...');
+        _shouldReconnect = false;
+        disconnectChatListSocket();
+        break;
+      default:
+        break;
+    }
   }
 
   Future<void> close() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString('receiver_id', '');
+    await prefs.setString('receiver_id', '');
   }
 
   Future<void> getInfo() async {
@@ -36,114 +64,113 @@ class UpdateChatListController extends GetxController {
       myId.value = prefs.getString('userId') ?? '';
 
       if (receiverId.value.isNotEmpty && myId.value.isNotEmpty) {
+        print('UpdateChatList Socket: Initializing with receiverId: ${receiverId.value}');
         connectSocket();
+      } else {
+        print('UpdateChatList Socket: Missing user info - receiverId: ${receiverId.value}, myId: ${myId.value}');
       }
     } catch (e) {
-      print(
-          'updatechatlist---------------------------->Error getting user info: $e');
+      print('UpdateChatList Socket: Error getting user info - $e');
     }
   }
 
   void connectSocket() {
-    if (_isConnected) {
-      print('updatechatlist---------------------------->Already connected, skipping connection');
+    if (isConnected.value) {
+      print('UpdateChatList Socket: Already connected, skipping connection');
       return;
     }
 
     if (receiverId.value.isEmpty || myId.value.isEmpty) {
-      print('updatechatlist---------------------------->Missing receiverId or myId, cannot connect');
+      print('UpdateChatList Socket: Missing receiverId or myId, cannot connect');
       return;
     }
 
-    chatListSocket = IO.io('$_baseUrl/chatlist/', <String, dynamic>{
-      'transports': ['websocket', 'polling'],
-      'autoConnect': false,
-      'reconnection': true,
-      'reconnectionAttempts': 5,
-      'reconnectionDelay': 2000,
-    });
+    try {
+      chatListSocket = IO.io('$_baseUrl/chatlist/', <String, dynamic>{
+        'transports': ['websocket', 'polling'],
+        'autoConnect': false,
+        'reconnection': true,
+        'reconnectionAttempts': 5,
+        'reconnectionDelay': 2000,
+        'query': {
+          'targetUserId': receiverId.value,  // Explicitly specify we want to connect to receiver's room
+          'myId': myId.value
+        }
+      });
 
-    chatListSocket.onConnect((_) {
-      print('updatechatlist---------------------------->ChatList Socket: Connected');
-      _isConnected = true;
-      _shouldReconnect = true;
-      joinRoom();
-    });
+      chatListSocket.onConnect((_) {
+        print('UpdateChatList Socket: Connected to chatlist namespace');
+        isConnected.value = true;
+        _shouldReconnect = true;
+        joinReceiverRoom();
+      });
 
-    chatListSocket.onConnectError((error) {
-      print('updatechatlist---------------------------->ChatList Socket: Connection Error: $error');
-      _isConnected = false;
-      if (_shouldReconnect) {
-        Future.delayed(const Duration(seconds: 5), () {
-          if (!_isConnected && _shouldReconnect) {
-            print('updatechatlist---------------------------->ChatList Socket: Attempting manual reconnect...');
-            chatListSocket.connect();
-          }
-        });
-      }
-    });
+      chatListSocket.onConnectError((error) {
+        print('UpdateChatList Socket: Connection Error - $error');
+        isConnected.value = false;
+        if (_shouldReconnect) {
+          Future.delayed(const Duration(seconds: 3), () {
+            if (!isConnected.value && _shouldReconnect) {
+              print('UpdateChatList Socket: Attempting manual reconnect...');
+              chatListSocket.connect();
+            }
+          });
+        }
+      });
 
-    chatListSocket.onDisconnect((_) {
-      print('updatechatlist---------------------------->ChatList Socket: Disconnected');
-      _isConnected = false;
-      if (_shouldReconnect) {
-        print('updatechatlist---------------------------->ChatList Socket: Attempting reconnect on disconnect...');
-        Future.delayed(const Duration(seconds: 2), () {
-          if (!_isConnected && _shouldReconnect) {
-            chatListSocket.connect();
-          }
-        });
-      }
-    });
+      chatListSocket.onDisconnect((_) {
+        print('UpdateChatList Socket: Disconnected');
+        isConnected.value = false;
+        if (_shouldReconnect) {
+          Future.delayed(const Duration(seconds: 2), () {
+            if (_shouldReconnect) connectSocket();
+          });
+        }
+      });
 
-    // Add specific listener for updateChatList event for debugging
-    chatListSocket.on('updateChatList', (_) {
-      print('updatechatlist---------------------------->Received updateChatList event');
-      // You might want to trigger a chat list refresh here if needed
-    });
+      chatListSocket.on('updateChatList', (_) {
+        print('UpdateChatList Socket: Received updateChatList event for room: ${receiverId.value}');
+      });
 
-    chatListSocket.onError((error) {
-      print('updatechatlist---------------------------->ChatList Socket: Error: $error');
-      _isConnected = false;
-    });
+      chatListSocket.onError((error) {
+        print('UpdateChatList Socket: Error - $error');
+        isConnected.value = false;
+      });
 
-    print('updatechatlist---------------------------->Attempting to connect to chat list socket');
-    chatListSocket.connect();
+      print('UpdateChatList Socket: Attempting to connect to chatlist namespace...');
+      chatListSocket.connect();
+    } catch (e) {
+      print('UpdateChatList Socket: Error creating socket - $e');
+      isConnected.value = false;
+    }
   }
 
-  // void startTyping() {
-  //   if (_currentRoomID != null && _isConnected) {
-  //     socket.emit('typing', {'roomID': _currentRoomID, 'userId': myId.value});
-  //   }
-  // }
+  void joinReceiverRoom() {
+    if (!isConnected.value || receiverId.value.isEmpty) {
+      print('UpdateChatList Socket: Cannot join room - Socket not connected or receiverId missing');
+      return;
+    }
 
-  // void stopTyping() {
-  //   if (_currentRoomID != null && _isConnected) {
-  //     socket.emit(
-  //         'stop_typing', {'roomID': _currentRoomID, 'userId': myId.value});
-  //   }
-  // }
-
-  void joinRoom() {
-    if (_isConnected) {
-      chatListSocket.emit('joinRoom', {'userId': receiverId.value});
-      print(
-          'updatechatlist---------------------------->Joined room: ${receiverId.value}');
-    } else {
-      print(
-          'updatechatlist---------------------------->ChatList Socket: Cannot join room. Socket not connected or userId missing.');
+    try {
+      print('UpdateChatList Socket: Joining receiver room: ${receiverId.value}');
+      chatListSocket.emit('joinRoom', {
+        'userId': receiverId.value,  // Always join receiver's room
+        'source': 'chatlist_update'  // Add context for debugging
+      });
+    } catch (e) {
+      print('UpdateChatList Socket: Error joining receiver room - $e');
     }
   }
 
   void sendMessage() {
-    if (!_isConnected) {
-      print('updatechatlist---------------------------->Socket not connected, attempting to reconnect');
+    if (!isConnected.value) {
+      print('UpdateChatList Socket: Not connected, attempting to reconnect');
       connectSocket();
       Future.delayed(Duration(seconds: 1), () {
-        if (_isConnected) {
+        if (isConnected.value) {
           _sendMessageImpl();
         } else {
-          print('updatechatlist---------------------------->Failed to connect, message not sent');
+          print('UpdateChatList Socket: Failed to connect, message not sent');
         }
       });
       return;
@@ -153,28 +180,39 @@ class UpdateChatListController extends GetxController {
 
   void _sendMessageImpl() {
     if (receiverId.value.isEmpty) {
-      print('updatechatlist---------------------------->receiverId is empty, cannot send message');
+      print('UpdateChatList Socket: receiverId is empty, cannot send message');
       return;
     }
     
-    print('updatechatlist---------------------------->Sending message to update chat list for user: ${receiverId.value}');
-    chatListSocket.emit("sendMessage", {"userId": receiverId.value});
-    print('updatechatlist---------------------------->Message sent to chatlist socket');
+    try {
+      print('UpdateChatList Socket: Sending update notification to receiver: ${receiverId.value}');
+      chatListSocket.emit("sendMessage", {
+        "userId": receiverId.value,
+        "source": "chatlist_update"
+      });
+      print('UpdateChatList Socket: Update notification sent');
+    } catch (e) {
+      print('UpdateChatList Socket: Error sending message - $e');
+    }
   }
 
-  void disconnectChatListSocket() {
-    _shouldReconnect =
-        false; // Prevent reconnection attempts on manual disconnect
-    if (_isConnected) {
-      if (myId.value.isNotEmpty) {
-        // Optionally tell the server the user is leaving the room
-        chatListSocket.emit('leaveRoom', {'userId': receiverId.value});
-        print(
-            'updatechatlist---------------------------->ChatList Socket: Leaving room for user ${receiverId.value}');
+  Future<void> disconnectChatListSocket() async {
+    _shouldReconnect = false;
+    if (isConnected.value) {
+      try {
+        if (receiverId.value.isNotEmpty) {
+          print('UpdateChatList Socket: Leaving receiver room: ${receiverId.value}');
+          chatListSocket.emit('leaveRoom', {
+            'userId': receiverId.value,
+            'source': 'chatlist_update'
+          });
+        }
+        await chatListSocket.disconnect();
+        isConnected.value = false;
+        print('UpdateChatList Socket: Disconnected from chatlist namespace');
+      } catch (e) {
+        print('UpdateChatList Socket: Error during disconnect - $e');
       }
-      chatListSocket.disconnect();
-      print(
-          'updatechatlist---------------------------->ChatList Socket: Disconnected manually.');
     }
   }
 }

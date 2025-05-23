@@ -1,4 +1,5 @@
 import 'package:chat_application_socket_io/cores/app_colors.dart';
+import 'package:chat_application_socket_io/features/chat%20list/controller/chat_list_controller.dart';
 import 'package:chat_application_socket_io/features/search/controller/search_controller.dart';
 import 'package:chat_application_socket_io/features/search/widgets/search_widget.dart';
 import 'package:flutter/material.dart';
@@ -22,9 +23,12 @@ class SearchViewClass extends StatelessWidget {
             backgroundColor: AppColors.background,
             elevation: 0,
             leading: IconButton(
-              icon: Icon(Icons.arrow_back_ios, color: AppColors.backgroundDark),
-              onPressed: () => Get.back(),
-            ),
+                icon:
+                    Icon(Icons.arrow_back_ios, color: AppColors.backgroundDark),
+                onPressed: () {
+                  // Get.find<ChatListController>().onInit();
+                  Get.back();
+                }),
             title: Text(
               'Search User',
               style: TextStyle(
