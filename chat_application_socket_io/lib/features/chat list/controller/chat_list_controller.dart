@@ -22,7 +22,7 @@ class ChatListController extends GetxController with WidgetsBindingObserver {
   late IO.Socket chatListSocket;
   var isConnected = false.obs;
   bool _shouldReconnect = true;
-  static var _baseUrl = dotenv.env['DEVELOPMENT_URL'];
+  static var _baseUrl = "https://chat-app-3m6o.onrender.com";
 
   @override
   void onInit() {
@@ -144,7 +144,7 @@ class ChatListController extends GetxController with WidgetsBindingObserver {
       chatListSocket.connect();
     } catch (e) {
       print('ChatList Socket: Error creating socket - ${e.toString()}');
-      errorMessage.value = 'Error creating socket: ${e.toString()}'; 
+      errorMessage.value = 'Error creating socket: ${e.toString()}';
     }
   }
 

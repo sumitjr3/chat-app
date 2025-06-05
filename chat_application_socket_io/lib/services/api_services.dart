@@ -10,7 +10,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 
 class ApiServices {
-  static var _baseUrl = dotenv.env['DEVELOPMENT_URL'];
+  static var _baseUrl =
+      dotenv.env['DEVELOPMENT_URL'] ?? 'https://chat-app-3m6o.onrender.com';
 
   static Future<void> showExitDialog(
       BuildContext context, double height, double width) async {

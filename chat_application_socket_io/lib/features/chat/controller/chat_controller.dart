@@ -17,7 +17,7 @@ class ChatController extends GetxController with WidgetsBindingObserver {
   var count = 0.obs;
   var token = ''.obs;
   var messages = <Message>[].obs;
-  var newMessage = ''.obs; 
+  var newMessage = ''.obs;
   var messageCount = 0.obs;
   var isLoading = false.obs;
 
@@ -31,7 +31,7 @@ class ChatController extends GetxController with WidgetsBindingObserver {
   bool _shouldReconnect = true; // Flag to control reconnection
   late ScrollController scrollController;
   var isInitialScrollDone = false.obs;
-  static var _baseUrl = dotenv.env['DEVELOPMENT_URL'];
+  static var _baseUrl = "https://chat-app-3m6o.onrender.com";
 
   @override
   void onInit() {
@@ -64,7 +64,8 @@ class ChatController extends GetxController with WidgetsBindingObserver {
       case AppLifecycleState.inactive:
       case AppLifecycleState.paused:
       case AppLifecycleState.detached:
-        print('Chat Socket: App in background/terminated - Disconnecting socket...');
+        print(
+            'Chat Socket: App in background/terminated - Disconnecting socket...');
         _shouldReconnect = false;
         leaveRoomAndDisconnect();
         break;
@@ -98,7 +99,8 @@ class ChatController extends GetxController with WidgetsBindingObserver {
           token.value.isNotEmpty) {
         await fetchOldMessages();
         connectSocket();
-        print('Chat Socket: Initialized with myId: ${myId.value}, receiverId: ${receiverId.value}');
+        print(
+            'Chat Socket: Initialized with myId: ${myId.value}, receiverId: ${receiverId.value}');
       }
     } catch (e) {
       print('Chat Socket: Error getting user info: $e');
@@ -119,10 +121,7 @@ class ChatController extends GetxController with WidgetsBindingObserver {
         'reconnectionAttempts': 5,
         'reconnectionDelay': 2000,
         'auth': {'token': token.value},
-        'query': {
-          'userId': myId.value,
-          'receiverId': receiverId.value
-        }
+        'query': {'userId': myId.value, 'receiverId': receiverId.value}
       });
 
       // Remove existing listeners to prevent duplicates
@@ -144,7 +143,7 @@ class ChatController extends GetxController with WidgetsBindingObserver {
         print('Chat Socket: Connection error - $error');
         _isConnected = false;
         if (_shouldReconnect) {
-          Future.delayed(const Duration(seconds: 3), () { 
+          Future.delayed(const Duration(seconds: 3), () {
             if (!_isConnected && _shouldReconnect) {
               print('Chat Socket: Attempting reconnect after error...');
               socket.connect();
@@ -208,7 +207,7 @@ class ChatController extends GetxController with WidgetsBindingObserver {
     _currentRoomID = roomID;
 
     if (!_isConnected) {
-      print('Socket not connected, cannot join room'); 
+      print('Socket not connected, cannot join room');
       return;
     }
 
@@ -274,10 +273,8 @@ class ChatController extends GetxController with WidgetsBindingObserver {
     if (_currentRoomID != null && _isConnected) {
       try {
         print('Chat Socket: Leaving room - $_currentRoomID');
-        socket.emit('leaveRoom', {
-          'roomID': _currentRoomID,
-          'userId': myId.value
-        });
+        socket.emit(
+            'leaveRoom', {'roomID': _currentRoomID, 'userId': myId.value});
         _currentRoomID = null;
         stopTyping();
         await disconnectSocket();

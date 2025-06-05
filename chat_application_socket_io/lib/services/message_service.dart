@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class MessageService {
-  static var _baseUrl = dotenv.env['DEVELOPMENT_URL'];
+  // Use environment variable with fallback to production URL
+  static var _baseUrl = dotenv.env['DEVELOPMENT_URL'] ?? 'https://chat-app-3m6o.onrender.com';
 
   // Function to fetch messages between sender and receiver
   Future<List<dynamic>> fetchMessages(

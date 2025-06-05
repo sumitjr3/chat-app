@@ -11,7 +11,7 @@ class UpdateChatListController extends GetxController
   late IO.Socket chatListSocket;
   var isConnected = false.obs;
   bool _shouldReconnect = true;
-  static var _baseUrl = dotenv.env['DEVELOPMENT_URL'];
+  static var _baseUrl = "https://chat-app-3m6o.onrender.com";
 
   @override
   void onInit() {
