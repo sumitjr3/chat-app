@@ -1,5 +1,6 @@
 import express, { json } from "express";
 import { createServer } from "http";
+import cors from "cors";
 import authRoutes from "./routes/authRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
@@ -16,7 +17,22 @@ dotenv.config();
 const app = express();
 const server = createServer(app);
 
+// CORS configuration - Allow requests from your Flutter development server
+const corsOptions = {
+  origin: [
+    "http://localhost:50975", // Your Flutter development server
+    "http://localhost:3000",  // Common React development port
+    "http://127.0.0.1:50975", // Alternative localhost format
+    "https://chat-app-3m6o.onrender.com", // Your production frontend if deployed
+    // Add any other origins you need to support
+  ],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
 // Middleware
+app.use(cors(corsOptions));
 app.use(json());
 app.use("/auth", authRoutes);
 app.use("/chat", chatRoutes);
