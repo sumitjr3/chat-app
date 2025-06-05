@@ -144,7 +144,7 @@ class ChatController extends GetxController with WidgetsBindingObserver {
         print('Chat Socket: Connection error - $error');
         _isConnected = false;
         if (_shouldReconnect) {
-          Future.delayed(const Duration(seconds: 3), () {
+          Future.delayed(const Duration(seconds: 3), () { 
             if (!_isConnected && _shouldReconnect) {
               print('Chat Socket: Attempting reconnect after error...');
               socket.connect();
@@ -208,7 +208,7 @@ class ChatController extends GetxController with WidgetsBindingObserver {
     _currentRoomID = roomID;
 
     if (!_isConnected) {
-      print('Socket not connected, cannot join room');
+      print('Socket not connected, cannot join room'); 
       return;
     }
 

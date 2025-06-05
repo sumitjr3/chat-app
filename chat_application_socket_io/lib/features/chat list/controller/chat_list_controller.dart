@@ -144,7 +144,7 @@ class ChatListController extends GetxController with WidgetsBindingObserver {
       chatListSocket.connect();
     } catch (e) {
       print('ChatList Socket: Error creating socket - ${e.toString()}');
-      errorMessage.value = 'Error creating socket: ${e.toString()}';
+      errorMessage.value = 'Error creating socket: ${e.toString()}'; 
     }
   }
 

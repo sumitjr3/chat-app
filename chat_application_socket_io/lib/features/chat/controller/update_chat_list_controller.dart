@@ -4,7 +4,8 @@ import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/material.dart';
 
-class UpdateChatListController extends GetxController with WidgetsBindingObserver {
+class UpdateChatListController extends GetxController
+    with WidgetsBindingObserver {
   var receiverId = ''.obs;
   var myId = ''.obs;
   late IO.Socket chatListSocket;
@@ -33,7 +34,8 @@ class UpdateChatListController extends GetxController with WidgetsBindingObserve
       case AppLifecycleState.resumed:
         print('UpdateChatList Socket: App resumed');
         if (receiverId.value.isNotEmpty) {
-          print('UpdateChatList Socket: Reconnecting to receiver ${receiverId.value}');
+          print(
+              'UpdateChatList Socket: Reconnecting to receiver ${receiverId.value}');
           _shouldReconnect = true;
           if (!isConnected.value) {
             connectSocket();
@@ -43,7 +45,8 @@ class UpdateChatListController extends GetxController with WidgetsBindingObserve
       case AppLifecycleState.inactive:
       case AppLifecycleState.paused:
       case AppLifecycleState.detached:
-        print('UpdateChatList Socket: App in background/terminated - Disconnecting socket...');
+        print(
+            'UpdateChatList Socket: App in background/terminated - Disconnecting socket...');
         _shouldReconnect = false;
         disconnectChatListSocket();
         break;
@@ -64,10 +67,12 @@ class UpdateChatListController extends GetxController with WidgetsBindingObserve
       myId.value = prefs.getString('userId') ?? '';
 
       if (receiverId.value.isNotEmpty && myId.value.isNotEmpty) {
-        print('UpdateChatList Socket: Initializing with receiverId: ${receiverId.value}');
+        print(
+            'UpdateChatList Socket: Initializing with receiverId: ${receiverId.value}');
         connectSocket();
       } else {
-        print('UpdateChatList Socket: Missing user info - receiverId: ${receiverId.value}, myId: ${myId.value}');
+        print(
+            'UpdateChatList Socket: Missing user info - receiverId: ${receiverId.value}, myId: ${myId.value}');
       }
     } catch (e) {
       print('UpdateChatList Socket: Error getting user info - $e');
@@ -81,7 +86,8 @@ class UpdateChatListController extends GetxController with WidgetsBindingObserve
     }
 
     if (receiverId.value.isEmpty || myId.value.isEmpty) {
-      print('UpdateChatList Socket: Missing receiverId or myId, cannot connect');
+      print(
+          'UpdateChatList Socket: Missing receiverId or myId, cannot connect');
       return;
     }
 
@@ -93,7 +99,8 @@ class UpdateChatListController extends GetxController with WidgetsBindingObserve
         'reconnectionAttempts': 5,
         'reconnectionDelay': 2000,
         'query': {
-          'targetUserId': receiverId.value,  // Explicitly specify we want to connect to receiver's room
+          'targetUserId': receiverId
+              .value, // Explicitly specify we want to connect to receiver's room
           'myId': myId.value
         }
       });
@@ -129,7 +136,8 @@ class UpdateChatListController extends GetxController with WidgetsBindingObserve
       });
 
       chatListSocket.on('updateChatList', (_) {
-        print('UpdateChatList Socket: Received updateChatList event for room: ${receiverId.value}');
+        print(
+            'UpdateChatList Socket: Received updateChatList event for room: ${receiverId.value}');
       });
 
       chatListSocket.onError((error) {
@@ -137,7 +145,8 @@ class UpdateChatListController extends GetxController with WidgetsBindingObserve
         isConnected.value = false;
       });
 
-      print('UpdateChatList Socket: Attempting to connect to chatlist namespace...');
+      print(
+          'UpdateChatList Socket: Attempting to connect to chatlist namespace...');
       chatListSocket.connect();
     } catch (e) {
       print('UpdateChatList Socket: Error creating socket - $e');
@@ -147,15 +156,17 @@ class UpdateChatListController extends GetxController with WidgetsBindingObserve
 
   void joinReceiverRoom() {
     if (!isConnected.value || receiverId.value.isEmpty) {
-      print('UpdateChatList Socket: Cannot join room - Socket not connected or receiverId missing');
+      print(
+          'UpdateChatList Socket: Cannot join room - Socket not connected or receiverId missing');
       return;
     }
 
     try {
-      print('UpdateChatList Socket: Joining receiver room: ${receiverId.value}');
+      print(
+          'UpdateChatList Socket: Joining receiver room: ${receiverId.value}');
       chatListSocket.emit('joinRoom', {
-        'userId': receiverId.value,  // Always join receiver's room
-        'source': 'chatlist_update'  // Add context for debugging
+        'userId': receiverId.value, // Always join receiver's room
+        'source': 'chatlist_update' // Add context for debugging
       });
     } catch (e) {
       print('UpdateChatList Socket: Error joining receiver room - $e');
@@ -183,13 +194,12 @@ class UpdateChatListController extends GetxController with WidgetsBindingObserve
       print('UpdateChatList Socket: receiverId is empty, cannot send message');
       return;
     }
-    
+
     try {
-      print('UpdateChatList Socket: Sending update notification to receiver: ${receiverId.value}');
-      chatListSocket.emit("sendMessage", {
-        "userId": receiverId.value,
-        "source": "chatlist_update"
-      });
+      print(
+          'UpdateChatList Socket: Sending update notification to receiver: ${receiverId.value}');
+      chatListSocket.emit("sendMessage",
+          {"userId": receiverId.value, "source": "chatlist_update"});
       print('UpdateChatList Socket: Update notification sent');
     } catch (e) {
       print('UpdateChatList Socket: Error sending message - $e');
@@ -201,11 +211,10 @@ class UpdateChatListController extends GetxController with WidgetsBindingObserve
     if (isConnected.value) {
       try {
         if (receiverId.value.isNotEmpty) {
-          print('UpdateChatList Socket: Leaving receiver room: ${receiverId.value}');
-          chatListSocket.emit('leaveRoom', {
-            'userId': receiverId.value,
-            'source': 'chatlist_update'
-          });
+          print(
+              'UpdateChatList Socket: Leaving receiver room: ${receiverId.value}');
+          chatListSocket.emit('leaveRoom',
+              {'userId': receiverId.value, 'source': 'chatlist_update'});
         }
         await chatListSocket.disconnect();
         isConnected.value = false;
