@@ -21,9 +21,10 @@ const server = createServer(app);
 const corsOptions = {
   origin: [
     "http://localhost:50975", // Your Flutter development server
-    "http://localhost:3000",  // Common React development port
+    "http://localhost:3000", // Common React development port
     "http://127.0.0.1:50975", // Alternative localhost format
-    "https://chat-app-3m6o.onrender.com", // Your production frontend if deployed
+    "https://chat-app-3m6o.onrender.com",
+    "https://chat-app-hosting-sumit.web.app", // Your production frontend if deployed
     // Add any other origins you need to support
   ],
   credentials: true,
