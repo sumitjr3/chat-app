@@ -16,6 +16,8 @@ class SignupController extends GetxController {
   // Observable variable to track the selected avatar index. -1 means none selected.
   var selectedAvatarIndex = RxInt(-1);
 
+  final ApiServices _apiServices = ApiServices();
+
   Future<void> signup(
       String Username,
       String Password,
@@ -28,7 +30,7 @@ class SignupController extends GetxController {
     errorMessage.value = '';
 
     try {
-      final result = await ApiServices.signup(
+      final result = await _apiServices.signup(
           Username, Password, Email, FirstName, LastName, Gender, avatarPath);
       token.value = result['token'];
       userId.value = result['userId'];

@@ -19,6 +19,7 @@ class MyApp extends StatelessWidget {
       title: 'Chat Application',
       getPages: AppPages.routes,
       home: const SplashView(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }

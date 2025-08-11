@@ -10,10 +10,11 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 
 class ApiServices {
-  static var _baseUrl =
-      dotenv.env['DEVELOPMENT_URL'] ?? 'https://chat-app-3m6o.onrender.com';
+  var _baseUrl = dotenv.env['ENVIRONMENT']! == 'dev'
+      ? dotenv.env['DEVELOPMENT_URL']!
+      : dotenv.env['PRODUCTION_URL']!;
 
-  static Future<void> showExitDialog(
+  Future<void> showExitDialog(
       BuildContext context, double height, double width) async {
     return showDialog(
       context: context,
@@ -110,7 +111,7 @@ class ApiServices {
     );
   }
 
-  static Future<Map<String, dynamic>> signup(
+  Future<Map<String, dynamic>> signup(
       String username,
       String password,
       String email,
@@ -173,8 +174,7 @@ class ApiServices {
     }
   }
 
-  static Future<Map<String, dynamic>> login(
-      String username, String password) async {
+  Future<Map<String, dynamic>> login(String username, String password) async {
     final response = await http.post(
       Uri.parse('$_baseUrl/auth/login'),
       headers: <String, String>{
