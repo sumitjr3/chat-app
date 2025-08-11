@@ -19,8 +19,8 @@ const server = createServer(app);
 
 // CORS configuration - Allow all origins
 const corsOptions = {
-  origin: "*", // Allow all origins
-  credentials: false, // Set to false when using "*" origin
+  origin: "https://chat-6d821.web.app", // Allow only your frontend origin
+  credentials: true, // Allow cookies to be sent
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
