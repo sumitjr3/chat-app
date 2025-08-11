@@ -22,7 +22,7 @@ class LoginController extends GetxController {
     errorMessage.value = '';
     try {
       final result = await _apiServices.login(username, password);
-      if (result == {}) {
+      if (result.isEmpty) {
         Get.snackbar('Invalid creds', 'Please enter valids credentials');
       } else {
         token.value = result['token'];

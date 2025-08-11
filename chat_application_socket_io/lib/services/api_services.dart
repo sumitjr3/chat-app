@@ -10,9 +10,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 
 class ApiServices {
-  var _baseUrl = dotenv.env['ENVIRONMENT']! == 'dev'
-      ? dotenv.env['DEVELOPMENT_URL']!
-      : dotenv.env['PRODUCTION_URL']!;
+  var _baseUrl = (dotenv.env['ENVIRONMENT'] ?? 'prod') == 'dev'
+      ? dotenv.env['DEVELOPMENT_URL']
+      : dotenv.env['PRODUCTION_URL'];
 
   Future<void> showExitDialog(
       BuildContext context, double height, double width) async {
